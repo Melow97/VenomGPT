@@ -1,0 +1,45 @@
+/* Premium Spider-Tech tracker integration. Keeps the landing page intact and upgrades the signed-in tracker experience. */
+(function(){
+  const css=document.createElement('style');
+  css.textContent=`
+    .vt-wrap{background:linear-gradient(145deg,#090d0f,#10191b 55%,#090d0f);border:1px solid #5b4930;border-radius:20px;overflow:hidden;box-shadow:0 28px 90px #0009}
+    .vt-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #5b4930;background:#0b1012;font:900 15px monospace;letter-spacing:1px;color:#ead7ad}
+    .vt-live{color:#54ddd3}.vt-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0}
+    .vt-map{position:relative;min-height:620px;background:#071113 url('/assets/spider-tech-tracker-dark.svg') center/cover no-repeat;border-right:1px solid #5b4930;overflow:hidden}
+    .vt-map:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 55% 48%,transparent 0 12%,#0000 35%,#0008 100%)}
+    .vt-signal{position:absolute;left:64%;top:44%;width:28px;height:28px;border-radius:50%;background:#ff3e32;border:3px solid #ffd09b;box-shadow:0 0 0 11px #ff3e3222,0 0 35px #ff3e32;z-index:3;transition:.55s ease}
+    .vt-signal:before,.vt-signal:after{content:"";position:absolute;inset:-18px;border:2px solid #ff3e32;border-radius:50%;opacity:.8;animation:vtPulse 1.8s infinite}
+    .vt-signal:after{inset:-35px;animation-delay:.6s;opacity:.35}
+    .vt-label{position:absolute;left:34px;top:-20px;white-space:nowrap;background:#0a1113;border:1px solid #ff503d;color:#ffb18d;padding:8px 10px;border-radius:5px;font:900 11px monospace}
+    .vt-hud{position:absolute;left:20px;top:20px;z-index:4;background:#0a1113dd;border:1px solid #4d6264;border-radius:9px;padding:14px 16px;color:#d8d0bf;font:12px/1.8 monospace}
+    .vt-hud b{color:#ff755c}.vt-legend{position:absolute;right:20px;top:20px;z-index:4;background:#0a1113dd;border:1px solid #4d6264;border-radius:9px;padding:13px 15px;font:11px/1.8 monospace;color:#b9c5c1}
+    .vt-side{background:#0b1113;padding:18px;display:flex;flex-direction:column;gap:14px}
+    .vt-panel{border:1px solid #3a4b4d;border-radius:12px;background:#0e1719;padding:16px}.vt-panel h3{margin:0 0 12px;color:#e6d4aa;font:900 13px monospace;letter-spacing:.7px}.vt-stat{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #ffffff10;color:#9da9a5;font-size:13px}.vt-stat b{color:#f0c66c}.vt-feed{font:12px/1.8 monospace;color:#aeb9b5;max-height:185px;overflow:auto}.vt-feed b{color:#55ddd5}
+    .vt-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vt-controls button{padding:12px;border-radius:8px;background:#111d1f;color:#ddd5c4;border:1px solid #3e5557;font-weight:900}.vt-controls button:hover{border-color:#55ddd5;color:#55ddd5}.vt-controls .danger{border-color:#b24d3a;color:#ff8064}
+    .vt-foot{padding:15px 20px;border-top:1px solid #3b4d4f;background:#0b1012;display:flex;justify-content:space-between;gap:12px;align-items:center;font:11px monospace;color:#7f8c88}.vt-foot b{color:#e4c26f}
+    .light .vt-wrap{background:#eee4d0;border-color:#9b7950}.light .vt-head,.light .vt-foot,.light .vt-side{background:#f6eddc;color:#604a31;border-color:#b8a78b}.light .vt-map{background-image:url('/assets/spider-tech-tracker-light.svg');border-color:#b8a78b}.light .vt-panel{background:#fff7e8;border-color:#b8a78b}.light .vt-panel h3{color:#604a31}.light .vt-stat{border-color:#00000012;color:#606b66}.light .vt-stat b{color:#9a6334}.light .vt-feed{color:#606b66}.light .vt-controls button{background:#eee2c9;border-color:#9b7950;color:#463f35}.light .vt-hud,.light .vt-legend{background:#f8efdcdd;border-color:#9b7950;color:#514b43}
+    @keyframes vtPulse{0%{transform:scale(.55);opacity:.9}80%,100%{transform:scale(1.35);opacity:0}}
+    @media(max-width:900px){.vt-body{grid-template-columns:1fr}.vt-map{min-height:520px;border-right:0;border-bottom:1px solid #5b4930}.vt-side{display:grid;grid-template-columns:1fr 1fr}.vt-panel:last-child{grid-column:1/-1}}
+    @media(max-width:600px){.vt-head{font-size:12px}.vt-map{min-height:430px}.vt-side{display:block}.vt-panel{margin-bottom:12px}.vt-hud{left:10px;top:10px}.vt-legend{right:10px;top:10px}.vt-foot{display:block}.vt-foot span{display:block;margin-top:7px}}
+  `;
+  document.head.appendChild(css);
+
+  const locations=[
+    {name:'QUEENS',x:'73%',y:'36%',lat:'40.7282',lon:'-73.7949'},
+    {name:'MIDTOWN',x:'58%',y:'48%',lat:'40.7549',lon:'-73.9840'},
+    {name:'BROOKLYN',x:'67%',y:'72%',lat:'40.6782',lon:'-73.9442'},
+    {name:'HARLEM',x:'34%',y:'35%',lat:'40.8116',lon:'-73.9465'},
+    {name:'TIMES SQUARE',x:'52%',y:'43%',lat:'40.7580',lon:'-73.9855'}
+  ];
+  let index=0,timer=null,started=Date.now();
+  function render(){
+    if(!window.main)return;
+    const p=locations[index];
+    main.innerHTML=`<div class="vt-wrap"><div class="vt-head"><span>VENOM GPT // SPIDEY TRACKER</span><span class="vt-live">● NYC SIGNAL ONLINE</span></div><div class="vt-body"><div class="vt-map"><div class="vt-hud">TIME <b id="vt-time">00:00:00</b><br>LATENCY <b>18ms</b><br>CONFIDENCE <b>94%</b><br>MODE <b>COMMUNITY</b></div><div class="vt-legend">● ACTIVE SIGNAL<br>◆ ROUTE TRACE<br>□ COMMUNITY EVENT</div><div id="vt-signal" class="vt-signal" style="left:${p.x};top:${p.y}"><span class="vt-label">NEW SIGHTING · ${p.name}</span></div></div><aside class="vt-side"><div class="vt-panel"><h3>SPIDER-TECH STATUS</h3><div class="vt-stat"><span>STATUS</span><b>ACTIVE</b></div><div class="vt-stat"><span>LATENCY</span><b>18MS</b></div><div class="vt-stat"><span>UPTIME</span><b>100%</b></div><div class="vt-stat"><span>SIGNAL</span><b>94%</b></div></div><div class="vt-panel"><h3>LIVE SIGNAL FEED</h3><div class="vt-feed" id="vt-feed"><b>NOW</b> · Signal relocated to ${p.name}<br><b>NOW</b> · Route trace recalculated<br><b>18 SEC</b> · Community ping received<br><b>32 SEC</b> · Signal strength stable</div></div><div class="vt-panel"><h3>TRACKER CONTROLS</h3><div class="vt-controls"><button onclick="vtNext()">NEXT SIGHTING</button><button onclick="vtRecenter()">RECENTER</button><button class="danger" onclick="toast('SIGNAL PAUSED · DEMO MODE')">PAUSE</button><button onclick="toast('SHAREABLE DEMO LINK READY')">SHARE</button></div></div></aside></div><div class="vt-foot"><span>FICTIONAL DEMO TELEMETRY · NOT A REAL-PERSON TRACKER</span><span>ROUTE <b>ACTIVE</b> · AUTO-REFRESH <b>ON</b></span></div></div>`;
+    clearInterval(timer);started=Date.now();timer=setInterval(()=>{const e=document.getElementById('vt-time');if(e){const s=Math.floor((Date.now()-started)/1000);e.textContent=new Date(s*1000).toISOString().slice(11,19)}},1000);
+  }
+  window.vtNext=function(){index=(index+1)%locations.length;render();shoot?.({target:document.querySelector('.vt-signal'),clientX:window.innerWidth/2,clientY:window.innerHeight/2})};
+  window.vtRecenter=function(){index=1;render();toast('TRACKER RECENTERED · MIDTOWN')};
+  window.openTracker=function(){landing.style.display='none';auth.style.display='none';app.style.display='block';active(null);render();window.scrollTo({top:0,behavior:'smooth'})};
+  window.addEventListener('beforeunload',()=>clearInterval(timer));
+})();
