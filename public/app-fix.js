@@ -1,0 +1,1 @@
+window.addEventListener('DOMContentLoaded',()=>{const field=document.getElementById('venomPrompt');if(field)window.prompt=field;});
