@@ -1,0 +1,1 @@
+Reference placeholder for the user-provided light dashboard composition. The production dashboard is implemented as responsive HTML/CSS and does not depend on this screenshot.
