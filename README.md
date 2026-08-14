@@ -11,8 +11,7 @@ Initial GitHub-ready scaffold for the Venom GPT website.
 - Local AI during development: Ollama
 - Later payments: Revolut Merchant / webhooks
 
-## Owner test configuration
-- Owner email: `melozturk00@gmail.com`
+## Owner test configuration`
 - Owner role is assigned server-side/database-side after successful authentication.
 
 ## Important
