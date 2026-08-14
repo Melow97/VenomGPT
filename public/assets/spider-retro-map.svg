@@ -1,19 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
 <defs>
- <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#2b6681" stroke-width="1" opacity=".5"/></pattern>
- <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <pattern id="minor" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#123d5d" stroke-width="1" opacity=".42"/></pattern>
+ <pattern id="roads" width="74" height="74" patternUnits="userSpaceOnUse" patternTransform="rotate(18)"><path d="M0 12H74M0 37H74M0 61H74" stroke="#27749c" stroke-width="2" opacity=".65"/><path d="M15 0V74M52 0V74" stroke="#194e72" stroke-width="1" opacity=".7"/></pattern>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="water" x1="0" x2="1"><stop stop-color="#041326"/><stop offset=".5" stop-color="#09213c"/><stop offset="1" stop-color="#041326"/></linearGradient>
 </defs>
-<rect width="1200" height="700" fill="#071329"/><rect width="1200" height="700" fill="url(#grid)"/>
-<path d="M-30 170 C190 120 300 250 470 185 S800 85 1230 160" fill="none" stroke="#214d70" stroke-width="42" opacity=".8"/>
-<path d="M-20 530 C170 470 320 570 480 495 S850 390 1220 510" fill="none" stroke="#214d70" stroke-width="36" opacity=".75"/>
-<path d="M240 -20 C280 160 225 300 330 720 M560 -20 C500 180 660 330 560 720 M900 -20 C830 190 970 380 870 720" fill="none" stroke="#173f62" stroke-width="30" opacity=".9"/>
-<path d="M80 330 L1120 110 M90 590 L1160 300 M190 60 L1030 660 M380 20 L1180 470 M30 430 L760 680" fill="none" stroke="#39a8d4" stroke-width="3" opacity=".65"/>
-<path d="M120 90 L1080 620 M100 260 L1090 410 M250 650 L950 30" fill="none" stroke="#70c7e8" stroke-width="1.5" opacity=".65" stroke-dasharray="8 9"/>
-<g fill="#0b1b31" stroke="#36a9d5" stroke-width="2"><circle cx="250" cy="220" r="10"/><circle cx="470" cy="370" r="12"/><circle cx="760" cy="250" r="11"/><circle cx="940" cy="420" r="10"/><circle cx="620" cy="530" r="9"/></g>
-<g font-family="monospace" font-weight="700" fill="#72d7ed" letter-spacing="3"><text x="80" y="120" font-size="28">HARLEM</text><text x="470" y="335" font-size="27">MIDTOWN</text><text x="875" y="210" font-size="28">QUEENS</text><text x="790" y="590" font-size="28">BROOKLYN</text><text x="155" y="410" font-size="20">EAST VILLAGE</text></g>
-<g fill="none" stroke="#ff533f" stroke-width="5" filter="url(#glow)"><path d="M350 510 C420 430 440 370 520 350 S700 390 770 260 S940 230 1040 140" stroke-dasharray="10 12"/><circle cx="770" cy="260" r="24"/><circle cx="770" cy="260" r="44" opacity=".45"/><circle cx="520" cy="350" r="15"/></g>
-<g font-family="monospace" font-weight="900" font-size="16" text-anchor="middle"><g fill="#ff7058" stroke="#ffbd9f" stroke-width="2"><circle cx="770" cy="260" r="17"/><circle cx="520" cy="350" r="13"/><circle cx="350" cy="510" r="13"/><circle cx="1040" cy="140" r="13"/></g><g fill="#09182b"><text x="770" y="266">✦</text><text x="520" y="356">●</text><text x="350" y="516">◆</text><text x="1040" y="146">✦</text></g></g>
-<g fill="none" stroke="#55d8d5" stroke-width="3"><circle cx="245" cy="220" r="14"/><circle cx="940" cy="420" r="14"/><circle cx="620" cy="530" r="14"/></g>
-<g font-family="monospace" font-size="13" fill="#d6e7e9"><text x="30" y="35">SMT-1 // SPIDER TRACK MARK II</text><text x="980" y="35">NYC SIGNAL NET</text><text x="30" y="675">FICTIONAL DEMO TELEMETRY</text><text x="1010" y="675">ZOOM 1.0x</text></g>
-<g opacity=".8" stroke="#5ee4ee" fill="none"><path d="M40 70h80M40 80h45M1090 70h70M1110 80h50"/><path d="M50 150v80M60 160v50M1140 450v90M1150 470v55"/></g>
+<rect width="1200" height="700" fill="url(#water)"/><rect width="1200" height="700" fill="url(#minor)"/>
+<!-- stylized NYC street fabric -->
+<path d="M-80 90 C120 135 170 45 320 130 S520 240 650 150 S880 75 1280 155" fill="none" stroke="#0c2b47" stroke-width="75"/>
+<path d="M-80 90 C120 135 170 45 320 130 S520 240 650 150 S880 75 1280 155" fill="none" stroke="#1c5e82" stroke-width="3"/>
+<path d="M-60 585 C170 510 280 625 430 525 S720 420 900 535 S1090 590 1260 490" fill="none" stroke="#0c2b47" stroke-width="82"/>
+<path d="M-60 585 C170 510 280 625 430 525 S720 420 900 535 S1090 590 1260 490" fill="none" stroke="#1c5e82" stroke-width="3"/>
+<path d="M180 -40 C240 100 180 220 270 345 S250 550 330 750 M510 -40 C470 120 590 250 510 370 S590 560 550 740 M845 -30 C780 150 910 250 820 390 S910 560 860 740" fill="none" stroke="#0c2d4a" stroke-width="66"/>
+<path d="M180 -40 C240 100 180 220 270 345 S250 550 330 750 M510 -40 C470 120 590 250 510 370 S590 560 550 740 M845 -30 C780 150 910 250 820 390 S910 560 860 740" fill="none" stroke="#27729b" stroke-width="3"/>
+<rect width="1200" height="700" fill="url(#roads)" opacity=".55"/>
+<!-- major routes -->
+<g fill="none" stroke-linecap="round"><path d="M40 520 C220 420 300 390 470 330 S710 320 870 245 S1040 165 1160 95" stroke="#55d8ef" stroke-width="4"/><path d="M65 185 C210 250 320 260 455 215 S720 160 895 215 S1060 330 1160 380" stroke="#44a6d1" stroke-width="3"/><path d="M125 640 C270 560 380 520 500 470 S710 405 830 420 S1040 500 1160 540" stroke="#3d8fb8" stroke-width="3"/><path d="M315 20 C350 140 390 220 460 310 S520 450 480 680" stroke="#6cc7df" stroke-width="2" stroke-dasharray="7 8"/><path d="M760 15 C720 130 690 230 730 320 S820 480 790 680" stroke="#6cc7df" stroke-width="2" stroke-dasharray="7 8"/></g>
+<!-- neighborhood labels -->
+<g font-family="monospace" font-weight="700" fill="#70cde8" letter-spacing="2"><text x="65" y="130" font-size="25">HARLEM</text><text x="430" y="330" font-size="28">MIDTOWN</text><text x="575" y="445" font-size="19">EAST VILLAGE</text><text x="885" y="160" font-size="27">QUEENS</text><text x="770" y="625" font-size="27">BROOKLYN</text><text x="130" y="565" font-size="15">LOWER MANHATTAN</text><text x="930" y="470" font-size="14">LONG ISLAND CITY</text></g>
+<!-- signal network nodes -->
+<g fill="#07182a" stroke-width="3"><circle cx="245" cy="225" r="13" stroke="#45d8c9"/><circle cx="435" cy="300" r="14" stroke="#ffbd3e"/><circle cx="635" cy="235" r="13" stroke="#35d7e9"/><circle cx="900" cy="245" r="14" stroke="#ff653f"/><circle cx="1040" cy="390" r="13" stroke="#45d8c9"/><circle cx="720" cy="505" r="13" stroke="#b976ff"/><circle cx="380" cy="520" r="14" stroke="#ff653f"/></g>
+<!-- route trace and active signal -->
+<path d="M380 520 C430 440 420 360 500 330 S650 355 735 290 S820 230 900 245" fill="none" stroke="#ff4e3d" stroke-width="4" stroke-dasharray="10 10" opacity=".95" filter="url(#glow)"/>
+<g filter="url(#glow)"><circle cx="635" cy="235" r="25" fill="none" stroke="#ff4e3d" stroke-width="3"/><circle cx="635" cy="235" r="9" fill="#ff4e3d" stroke="#ffd0a0" stroke-width="3"/></g>
+<!-- colored signal markers -->
+<g font-family="monospace" font-size="14" font-weight="900" text-anchor="middle"><g fill="#ff5c42" stroke="#ffc1a4" stroke-width="2"><circle cx="900" cy="245" r="14"/><circle cx="380" cy="520" r="14"/></g><g fill="#06172a"><text x="900" y="250">✦</text><text x="380" y="525">●</text></g><g fill="#37d9d3" stroke="#a5fff8" stroke-width="1"><circle cx="245" cy="225" r="9"/><circle cx="1040" cy="390" r="9"/></g><g fill="#06172a"><text x="245" y="230">●</text><text x="1040" y="395">●</text></g></g>
+<!-- HUD frame marks -->
+<g stroke="#5fe5ef" fill="none" opacity=".8"><path d="M28 54h92M28 64h55M1080 54h92M1110 64h62M28 635v-70M38 635v-45M1172 635v-70M1162 635v-45"/></g>
+<g font-family="monospace" font-size="13" fill="#d5e9ed"><text x="28" y="31">SMT-1 // SPIDER-TECH SIGNAL NETWORK</text><text x="970" y="31">NYC SIGNAL NET</text><text x="28" y="678">FICTIONAL DEMO TELEMETRY</text><text x="1010" y="678">VIEW: CITY</text></g>
 </svg>
