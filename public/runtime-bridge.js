@@ -1,6 +1,6 @@
 /* VENOM RUNTIME BRIDGE — resilient, event-driven module loader */
 (function(){
-  const VERSION='20260815-31';
+  const VERSION='20260815-32';
   const modules=[
     ['/home-map-enhance.js','data-venom-runtime-home'],
     ['/home-finish.js','data-venom-home-finish'],
@@ -13,6 +13,7 @@
     ['/ai-chat-work-toggle.js','data-venom-chat-work-toggle'],
     ['/payment-experience-v2.js','data-venom-payment-v2'],
     ['/spider-tracker-retro-v2.js','data-venom-spider-retro-v2'],
+    ['/ai-light-premium-v3.js','data-venom-ai-light-premium-v3'],
     ['/admin-command-center.js','data-venom-admin-command-center'],
     ['/admin-access-override.js','data-venom-admin-access-override']
   ];
