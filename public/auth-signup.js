@@ -1,95 +1,138 @@
-/* VENOM AUTH — passwordless email signup / magic-link flow */
+/* VENOM AUTH V2 — email + password, confirmation email, reset flow */
 (function(){
-  const VERSION='20260815-21';
+  const VERSION='20260815-30';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   const REDIRECT=()=>window.location.origin+'/?auth=email';
 
-  function style(){
-    if(document.getElementById('venom-auth-signup-style'))return;
-    const s=document.createElement('style');s.id='venom-auth-signup-style';
-    s.textContent=`
-      .venomAuthModes{display:flex;gap:8px;margin:0 0 18px}
-      .venomAuthMode{flex:1;border:1px solid rgba(85,221,214,.22);background:#0b1112;color:#aebcba;border-radius:12px;padding:11px 12px;font-weight:800;cursor:pointer}
-      .venomAuthMode.active{border-color:#55ddd6;color:#55ddd6;box-shadow:0 0 18px rgba(85,221,214,.1)}
-      .venomAuthForm{display:grid;gap:11px}
-      .venomAuthInput{width:100%;box-sizing:border-box;border:1px solid rgba(232,222,203,.16);background:#0b1112;color:#f2eadc;border-radius:12px;padding:14px 15px;font:inherit;outline:none}
-      .venomAuthInput:focus{border-color:#55ddd6;box-shadow:0 0 0 3px rgba(85,221,214,.08)}
-      .venomAuthSubmit{border:0;border-radius:12px;padding:14px 16px;background:linear-gradient(135deg,#55ddd6,#2fb7b1);color:#071011;font-weight:900;cursor:pointer}
-      .venomAuthHint{font-size:12px;line-height:1.55;color:#84918f;margin:2px 0 4px}
-      .venomAuthSuccess{display:none;border:1px solid rgba(85,221,214,.25);background:rgba(85,221,214,.06);color:#d8fffc;border-radius:12px;padding:14px;line-height:1.5;margin-top:10px}
-      .venomAuthSuccess.show{display:block}
-    `;document.head.appendChild(s);
-  }
-
-  async function client(){
+  function client(){
     if(window.__venomSupabase)return window.__venomSupabase;
     if(window.supabase?.createClient){
       window.__venomSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
       return window.__venomSupabase;
     }
-    throw new Error('Supabase client is not ready.');
+    throw new Error('Authentication service is still loading. Please refresh and try again.');
+  }
+
+  function style(){
+    if(document.getElementById('venom-auth-v2-style'))return;
+    const s=document.createElement('style');s.id='venom-auth-v2-style';s.textContent=`
+      .venomAuthModes{display:flex;gap:8px;margin:0 0 18px}
+      .venomAuthMode{flex:1;border:1px solid rgba(85,221,214,.22);background:#0b1112;color:#aebcba;border-radius:12px;padding:11px 12px;font-weight:900;cursor:pointer}
+      .venomAuthMode.active{border-color:#55ddd6;color:#55ddd6;box-shadow:0 0 18px rgba(85,221,214,.1)}
+      .venomAuthForm{display:grid;gap:11px}
+      .venomAuthInput{width:100%;box-sizing:border-box;border:1px solid rgba(232,222,203,.16);background:#0b1112;color:#f2eadc;border-radius:12px;padding:14px 15px;font:inherit;outline:none}
+      .venomAuthInput:focus{border-color:#55ddd6;box-shadow:0 0 0 3px rgba(85,221,214,.08)}
+      .venomAuthSubmit{border:0;border-radius:12px;padding:14px 16px;background:linear-gradient(135deg,#55ddd6,#2fb7b1);color:#071011;font-weight:900;cursor:pointer}
+      .venomAuthSubmit:disabled{opacity:.55;cursor:wait}
+      .venomAuthHint{font-size:12px;line-height:1.55;color:#84918f;margin:2px 0 4px}
+      .venomAuthSuccess{display:none;border:1px solid rgba(85,221,214,.25);background:rgba(85,221,214,.06);color:#d8fffc;border-radius:12px;padding:14px;line-height:1.5;margin-top:10px}
+      .venomAuthSuccess.show{display:block}
+      .venomAuthForgot{border:0;background:none;color:#63ddd6;font:800 12px monospace;cursor:pointer;text-align:right;padding:2px 0}
+      .venomAuthGoogle{margin-top:2px}
+      .venomAuthDivider{display:flex;align-items:center;gap:10px;color:#667370;font-size:11px;margin:14px 0}
+      .venomAuthDivider span{height:1px;background:#243031;flex:1}
+      .venomPasswordWrap{position:relative}.venomPasswordWrap .venomAuthInput{padding-right:74px}
+      .venomShowPass{position:absolute;right:9px;top:8px;border:0;background:#ffffff08;color:#8e9a98;border-radius:8px;padding:7px 8px;font:800 10px monospace;cursor:pointer}
+    `;document.head.appendChild(s);
   }
 
   function render(){
-    const card=document.querySelector('#auth .authCard');
-    if(!card)return;
+    const card=document.querySelector('#auth .authCard');if(!card)return;
     style();
     card.innerHTML=`
       <div class="authLogo">VENOM <span>GPT</span></div>
-      <h1 id="venomAuthTitle">Welcome to Venom.</h1>
-      <p id="venomAuthSubtitle">Sign in or create your workspace. No password and no verification code to type.</p>
+      <h1 id="venomAuthTitle">Welcome back.</h1>
+      <p id="venomAuthSubtitle">Sign in with your email and password, or use Google.</p>
       <div class="venomAuthModes">
         <button type="button" class="venomAuthMode active" id="venomSignInTab">SIGN IN</button>
         <button type="button" class="venomAuthMode" id="venomSignUpTab">CREATE ACCOUNT</button>
       </div>
-      <button class="google" id="google" onclick="login()">G&nbsp;&nbsp; Continue with Google</button>
-      <div style="display:flex;align-items:center;gap:10px;color:#667370;font-size:11px;margin:14px 0"><span style="height:1px;background:#243031;flex:1"></span>OR EMAIL<span style="height:1px;background:#243031;flex:1"></span></div>
+      <button class="google venomAuthGoogle" id="google" onclick="login()">G&nbsp;&nbsp; Continue with Google</button>
+      <div class="venomAuthDivider"><span></span>OR EMAIL + PASSWORD<span></span></div>
       <form class="venomAuthForm" id="venomEmailForm">
-        <input class="venomAuthInput hide" id="venomName" autocomplete="name" placeholder="Your name" maxlength="80">
+        <input class="venomAuthInput hide" id="venomName" autocomplete="name" placeholder="Full name" maxlength="80">
         <input class="venomAuthInput" id="venomEmail" type="email" autocomplete="email" placeholder="Email address" required>
-        <div class="venomAuthHint" id="venomAuthHint">We'll email you a secure sign-in link. Click it and you're in — no password or code.</div>
-        <button class="venomAuthSubmit" id="venomEmailSubmit" type="submit">EMAIL ME A SIGN-IN LINK →</button>
+        <input class="venomAuthInput hide" id="venomEmailConfirm" type="email" autocomplete="email" placeholder="Confirm email address">
+        <div class="venomPasswordWrap"><input class="venomAuthInput" id="venomPassword" type="password" autocomplete="current-password" placeholder="Password" minlength="8" required><button type="button" class="venomShowPass" id="venomShowPass">SHOW</button></div>
+        <div class="venomPasswordWrap hide" id="venomConfirmPasswordWrap"><input class="venomAuthInput" id="venomPasswordConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" minlength="8"><button type="button" class="venomShowPass" id="venomShowPass2">SHOW</button></div>
+        <div class="venomAuthHint" id="venomAuthHint">Use at least 8 characters. No login code is required.</div>
+        <button class="venomAuthForgot" id="venomForgot" type="button">Forgot password?</button>
+        <button class="venomAuthSubmit" id="venomEmailSubmit" type="submit">SIGN IN →</button>
       </form>
       <div id="venomAuthSuccess" class="venomAuthSuccess"></div>
       <div id="err" class="error"></div>
-      <div class="secure">SECURE PASSWORDLESS AUTH · SUPABASE</div>
+      <div class="secure">SECURE EMAIL + PASSWORD AUTH · SUPABASE</div>
     `;
-    const si=document.getElementById('venomSignInTab'),su=document.getElementById('venomSignUpTab'),name=document.getElementById('venomName');
-    function mode(signup){
-      si.classList.toggle('active',!signup);su.classList.toggle('active',signup);name.classList.toggle('hide',!signup);
+
+    let signup=false;
+    const si=document.getElementById('venomSignInTab'),su=document.getElementById('venomSignUpTab');
+    const name=document.getElementById('venomName'),email2=document.getElementById('venomEmailConfirm'),confirmWrap=document.getElementById('venomConfirmPasswordWrap');
+    const forgot=document.getElementById('venomForgot'),submit=document.getElementById('venomEmailSubmit');
+    const password=document.getElementById('venomPassword'),password2=document.getElementById('venomPasswordConfirm');
+    const hint=document.getElementById('venomAuthHint'),ok=document.getElementById('venomAuthSuccess'),err=document.getElementById('err');
+
+    const togglePassword=(a,b)=>{const type=a.type==='password'?'text':'password';a.type=type;b.textContent=type==='password'?'SHOW':'HIDE'};
+    document.getElementById('venomShowPass').onclick=()=>togglePassword(password,document.getElementById('venomShowPass'));
+    document.getElementById('venomShowPass2').onclick=()=>togglePassword(password2,document.getElementById('venomShowPass2'));
+
+    function mode(next){
+      signup=next;si.classList.toggle('active',!signup);su.classList.toggle('active',signup);
+      name.classList.toggle('hide',!signup);email2.classList.toggle('hide',!signup);confirmWrap.classList.toggle('hide',!signup);
+      forgot.classList.toggle('hide',signup);password.autocomplete=signup?'new-password':'current-password';
       document.getElementById('venomAuthTitle').textContent=signup?'Create your Venom workspace.':'Welcome back.';
-      document.getElementById('venomAuthSubtitle').textContent=signup?'Enter your name and email. We will send one secure link — no password, no code.':'Sign in with Google or get a secure sign-in link by email.';
-      document.getElementById('venomEmailSubmit').textContent=signup?'CREATE ACCOUNT →':'EMAIL ME A SIGN-IN LINK →';
-      document.getElementById('venomAuthSuccess').classList.remove('show');
-      document.getElementById('err').textContent='';
+      document.getElementById('venomAuthSubtitle').textContent=signup?'Enter your details and create a secure password. We will email you a confirmation link.':'Sign in with email and password, or continue with Google.';
+      hint.textContent=signup?'Password must be at least 8 characters. After signup, check your email to confirm your account.':'Use the password you created for Venom GPT. No verification code is required.';
+      submit.textContent=signup?'CREATE ACCOUNT →':'SIGN IN →';ok.classList.remove('show');err.textContent='';
     }
     si.onclick=()=>mode(false);su.onclick=()=>mode(true);
-    document.getElementById('venomEmailForm').onsubmit=(e)=>{e.preventDefault();send(modeState());};
-    let signup=false;
-    function modeState(){return signup}
-    const oldSi=si.onclick,oldSu=su.onclick;
-    si.onclick=()=>{signup=false;oldSi()};su.onclick=()=>{signup=true;oldSu()};
-  }
 
-  async function send(signup){
-    const email=(document.getElementById('venomEmail')?.value||'').trim();
-    const name=(document.getElementById('venomName')?.value||'').trim();
-    const submit=document.getElementById('venomEmailSubmit'),err=document.getElementById('err'),ok=document.getElementById('venomAuthSuccess');
-    if(!email)return;
-    if(signup&&!name){err.textContent='Please enter your name.';return}
-    submit.disabled=true;submit.textContent='SENDING SECURE LINK…';err.textContent='';ok.classList.remove('show');
-    try{
-      const c=await client();
-      const {error}=await c.auth.signInWithOtp({email,options:{emailRedirectTo:REDIRECT(),shouldCreateUser:true,data:signup?{full_name:name,first_name:name.split(/\s+/)[0]}:undefined}});
-      if(error)throw error;
-      sessionStorage.setItem('venom-open-ai','1');
-      ok.innerHTML='<strong>Check your email.</strong><br>We sent a secure Venom GPT sign-in link to <b>'+email.replace(/[<>]/g,'')+'</b>. Open it to finish signing in automatically.';ok.classList.add('show');
-      submit.textContent='LINK SENT ✓';
-    }catch(e){err.textContent='EMAIL SIGN-IN ERROR · '+(e?.message||String(e));submit.disabled=false;submit.textContent=signup?'CREATE ACCOUNT →':'EMAIL ME A SIGN-IN LINK →'}
+    forgot.onclick=async()=>{
+      const email=(document.getElementById('venomEmail').value||'').trim();
+      if(!email){err.textContent='Enter your email first, then choose Forgot password.';return}
+      forgot.disabled=true;err.textContent='';ok.classList.remove('show');
+      try{
+        const {error}=await client().auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/?auth=reset'});
+        if(error)throw error;
+        ok.innerHTML='<strong>Password reset email sent.</strong><br>Check <b>'+email.replace(/[<>]/g,'')+'</b> for the secure reset link.';ok.classList.add('show');
+      }catch(e){err.textContent='PASSWORD RESET ERROR · '+(e?.message||String(e))}finally{forgot.disabled=false}
+    };
+
+    document.getElementById('venomEmailForm').onsubmit=async(e)=>{
+      e.preventDefault();err.textContent='';ok.classList.remove('show');submit.disabled=true;submit.textContent=signup?'CREATING ACCOUNT…':'SIGNING IN…';
+      const email=(document.getElementById('venomEmail').value||'').trim();
+      const emailConfirm=(email2.value||'').trim();
+      const fullName=(name.value||'').trim();
+      const pass=password.value||'';
+      try{
+        if(signup){
+          if(!fullName)throw new Error('Please enter your full name.');
+          if(email.toLowerCase()!==emailConfirm.toLowerCase())throw new Error('Email addresses do not match.');
+          if(pass.length<8)throw new Error('Password must be at least 8 characters.');
+          if(pass!==password2.value)throw new Error('Passwords do not match.');
+          const {data,error}=await client().auth.signUp({email,password:pass,options:{emailRedirectTo:REDIRECT(),data:{full_name:fullName,first_name:fullName.split(/\s+/)[0]}}});
+          if(error)throw error;
+          sessionStorage.setItem('venom-open-ai','1');
+          if(data.session){
+            ok.innerHTML='<strong>Account created.</strong><br>Opening your Venom GPT workspace…';ok.classList.add('show');
+            if(typeof window.applySession==='function')await window.applySession(data.session);
+          }else{
+            ok.innerHTML='<strong>Check your email.</strong><br>We sent a confirmation link to <b>'+email.replace(/[<>]/g,'')+'</b>. Click it once to activate your account and enter Venom GPT.';ok.classList.add('show');submit.textContent='CONFIRMATION SENT ✓';
+          }
+        }else{
+          if(!email||!pass)throw new Error('Enter your email and password.');
+          const {data,error}=await client().auth.signInWithPassword({email,password:pass});
+          if(error)throw error;
+          sessionStorage.setItem('venom-open-ai','1');
+          if(data.session&&typeof window.applySession==='function')await window.applySession(data.session);
+        }
+      }catch(e){
+        console.error('[VENOM EMAIL AUTH]',e);err.textContent='AUTH ERROR · '+(e?.message||String(e));
+      }finally{if(!ok.classList.contains('show')||!signup){submit.disabled=false;submit.textContent=signup?'CREATE ACCOUNT →':'SIGN IN →'}}
+    };
   }
 
   window.venomEmailSignupReady=true;
-  const boot=()=>{render();};
+  const boot=()=>render();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
