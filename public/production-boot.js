@@ -1,7 +1,7 @@
 /* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT
    One authoritative workspace renderer + protected design/interaction + professional welcome + runtime failsafe. */
 (()=>{
-  const VERSION='20260815-75';
+  const VERSION='20260815-76';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.src=src+'?v='+VERSION;
@@ -16,7 +16,7 @@
     await load('/venom-final-polish-v1.js');
     await load('/venom-welcome-professional-v1.js');
     await load('/venom-runtime-override-v1.js');
-    console.info('[VENOM] production '+VERSION+' loaded: authoritative UI + Spider-Tech + welcome + runtime failsafe');
+    console.info('[VENOM] production '+VERSION+' loaded: authoritative UI + Spider-Tech + welcome + OAuth/brand/nav failsafe');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
