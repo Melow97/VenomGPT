@@ -3,8 +3,23 @@
   Pragma: no-cache
   X-Content-Type-Options: nosniff
 
+/*.html
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/*.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
 /production-boot.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
 /venom-authoritative-ui-v2.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/venom-final-polish-v1.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/venom-welcome-professional-v1.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/venom-runtime-override-v1.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
