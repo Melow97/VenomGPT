@@ -1,6 +1,6 @@
 /* VENOM GPT PRODUCTION BOOT — final deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-7';
+  const VERSION='20260815-9';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   const AI_AFTER_AUTH='venom-open-ai';
