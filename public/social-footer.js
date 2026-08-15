@@ -1,8 +1,9 @@
-/* VENOM GPT — home social footer */
+/* VENOM GPT — home social footer + world tracker loader */
 (function(){
   const X_URL='https://x.com/SpideytrackerAI';
   const STYLE_ID='venom-social-footer-style';
   const FOOTER_ID='venom-home-social';
+  const TRACKER_ID='venom-world-tracker-loader';
   function installStyle(){
     if(document.getElementById(STYLE_ID)) return;
     const s=document.createElement('style');
@@ -30,17 +31,27 @@
   function add(){
     const main=document.getElementById('main');
     if(!main || document.getElementById(FOOTER_ID)) return;
-    // Only add this to the logged-in Home surface, not chat/modules/tracker.
     if(!main.querySelector('.v3-home')) return;
     const footer=document.createElement('section');
     footer.id=FOOTER_ID;
     footer.innerHTML=`<div class="vsf-copy"><div class="vsf-kicker">FOLLOW THE WEB</div><div class="vsf-title">Follow Venom GPT on X</div><div class="vsf-sub">Updates, Spider-Tech builds and new Venom GPT drops.</div></div><a class="vsf-x" href="${X_URL}" target="_blank" rel="noopener noreferrer" aria-label="Follow SpideyTrackerAI on X"><span class="vsf-xmark">𝕏</span><span class="vsf-handle">@SpideyTrackerAI</span><span>↗</span></a>`;
     main.appendChild(footer);
   }
+  function loadWorldTracker(){
+    if(document.getElementById(TRACKER_ID)) return;
+    if(!document.getElementById('tracker')) return;
+    const s=document.createElement('script');
+    s.id=TRACKER_ID;
+    s.src='/world-tracker-v4.js?v=20260815-11';
+    s.onload=()=>console.info('[VENOM] world tracker v4 loaded');
+    s.onerror=()=>console.error('[VENOM] world tracker v4 failed to load');
+    document.body.appendChild(s);
+  }
   function boot(){
     installStyle();
     add();
-    const obs=new MutationObserver(add);
+    loadWorldTracker();
+    const obs=new MutationObserver(()=>{add();loadWorldTracker()});
     obs.observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
