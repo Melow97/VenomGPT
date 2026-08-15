@@ -1,8 +1,8 @@
 /* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-42';
+  const VERSION='20260815-43';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
-  const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksfH';
+  const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   function ensureScript(src,key){return new Promise(resolve=>{if(document.querySelector('script['+key+']'))return resolve();const s=document.createElement('script');s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()};document.body.appendChild(s)})}
   async function getClient(){let n=0;while(!window.supabase?.createClient&&n++<80)await new Promise(r=>setTimeout(r,100));if(!window.supabase?.createClient)throw new Error('Supabase library did not load.');if(!window.__venomSupabase)window.__venomSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});return window.__venomSupabase}
   window.__venomGetSupabase=getClient;
@@ -20,12 +20,12 @@
     await ensureScript('/venom-payment-auth.js?v='+VERSION,'data-venom-payment-auth');
     await ensureScript('/venom-premium-polish.js?v='+VERSION,'data-venom-premium-polish');
     await ensureScript('/venom-plan-polish.js?v='+VERSION,'data-venom-plan-polish');
-    await ensureScript('/venom-ui-overhaul-v1.js?v='+VERSION,'data-venom-ui-overhaul');
+    await ensureScript('/venom-ui-overhaul-v2.js?v='+VERSION,'data-venom-ui-overhaul-v2');
     await ensureScript('/venom-ui-bridge-v1.js?v='+VERSION,'data-venom-ui-bridge');
     makeInteractive();
     new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     try{await getClient()}catch(e){console.warn('[VENOM AUTH] client warmup failed',e)}
-    console.info('[VENOM] production boot '+VERSION+' ready; auth-controller-v2 owns session routing; premium UI loaded');
+    console.info('[VENOM] production boot '+VERSION+' ready; auth-controller-v2 owns session routing; premium UI v2 loaded');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
