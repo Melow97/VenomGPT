@@ -1,6 +1,6 @@
 /* VENOM RUNTIME BRIDGE — approved UI, auth handoff, responsive premium finish */
 (function(){
-  const VERSION='20260815-21';
+  const VERSION='20260815-22';
   function load(src,attr,next){
     if(document.querySelector('script['+attr+']')){next&&next();return}
     const s=document.createElement('script');s.src=src;s.setAttribute(attr,'1');s.onload=next||null;s.onerror=e=>console.error('[VENOM RUNTIME]',src,e);document.body.appendChild(s)
@@ -19,10 +19,12 @@
             load('/ai-pro-finish.js?v='+VERSION,'data-venom-ai-pro-finish',()=>{
               load('/premium-responsive.js?v='+VERSION,'data-venom-premium-responsive',()=>{
                 load('/ai-chat-work-toggle.js?v='+VERSION,'data-venom-chat-work-toggle',()=>{
-                  removePause();
-                  new MutationObserver(removePause).observe(document.body,{childList:true,subtree:true});
-                  if(window.venomAuthClient)window.venomAuthClient().auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||sessionStorage.getItem('venom-open-ai')==='1'))openAIAfterAuth()});
-                  openAIAfterAuth();
+                  load('/admin-command-center.js?v='+VERSION,'data-venom-admin-command-center',()=>{
+                    removePause();
+                    new MutationObserver(removePause).observe(document.body,{childList:true,subtree:true});
+                    if(window.venomAuthClient)window.venomAuthClient().auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||sessionStorage.getItem('venom-open-ai')==='1'))openAIAfterAuth()});
+                    openAIAfterAuth();
+                  });
                 });
               });
             });
