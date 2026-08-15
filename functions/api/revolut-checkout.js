@@ -18,8 +18,11 @@ export async function onRequestPost({ request, env }) {
 
   let body = {};
   try { body = await request.json(); } catch (_) {}
-  if (body.plan !== 'pro') return new Response(JSON.stringify({ error: 'Unknown plan' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  const plan = body.plan === 'annual' ? 'annual' : body.plan === 'pro' ? 'pro' : null;
+  if (!plan) return new Response(JSON.stringify({ error: 'Unknown plan' }), { status: 400, headers: { 'content-type': 'application/json' } });
 
+  const amount = plan === 'annual' ? 23000 : 2000;
+  const description = plan === 'annual' ? 'Venom GPT Pro — annual plan' : 'Venom GPT Pro — monthly plan';
   const origin = new URL(request.url).origin;
   const response = await fetch('https://merchant.revolut.com/api/orders', {
     method: 'POST',
@@ -30,12 +33,12 @@ export async function onRequestPost({ request, env }) {
       'Idempotency-Key': crypto.randomUUID()
     },
     body: JSON.stringify({
-      amount: 2000,
+      amount,
       currency: 'EUR',
-      description: 'Venom GPT Pro — monthly plan',
-      merchant_order_data: { reference: `VENOM-PRO-${user.id}` },
-      metadata: { user_id: user.id, plan: 'pro', email: user.email || '' },
-      redirect_url: `${origin}/?payment=revolut-success`
+      description,
+      merchant_order_data: { reference: `VENOM-${plan.toUpperCase()}-${user.id}` },
+      metadata: { user_id: user.id, plan, email: user.email || '' },
+      redirect_url: `${origin}/?payment=revolut-success&plan=${plan}`
     })
   });
 
@@ -44,5 +47,5 @@ export async function onRequestPost({ request, env }) {
     return new Response(JSON.stringify({ error: data.message || data.error || 'Revolut order creation failed' }), { status: 502, headers: { 'content-type': 'application/json' } });
   }
 
-  return new Response(JSON.stringify({ ok: true, checkout_url: data.checkout_url, order_id: data.id, token: data.token }), { headers: { 'content-type': 'application/json' } });
+  return new Response(JSON.stringify({ ok: true, checkout_url: data.checkout_url, order_id: data.id, token: data.token, plan }), { headers: { 'content-type': 'application/json' } });
 }
