@@ -1,12 +1,24 @@
+async function getUser(request, env) {
+  const auth = request.headers.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const supabaseUrl = env.SUPABASE_URL || 'https://dqqqagpsaaalsztblmsc.supabase.co';
+  const r = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${token}` } });
+  if (!r.ok) return null;
+  return await r.json();
+}
+
 export async function onRequestPost({ request, env }) {
-  if (!env.REVOLUT_SECRET_KEY) {
-    return new Response(JSON.stringify({ error: 'Revolut checkout is not configured. Add REVOLUT_SECRET_KEY to the server environment.' }), { status: 503, headers: { 'content-type': 'application/json' } });
+  if (!env.REVOLUT_SECRET_KEY || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: 'Payment service is not configured on the server.' }), { status: 503, headers: { 'content-type': 'application/json' } });
   }
+
+  const user = await getUser(request, env);
+  if (!user?.id) return new Response(JSON.stringify({ error: 'Sign in before upgrading.' }), { status: 401, headers: { 'content-type': 'application/json' } });
 
   let body = {};
   try { body = await request.json(); } catch (_) {}
-  const plan = body.plan === 'pro' ? 'pro' : null;
-  if (!plan) return new Response(JSON.stringify({ error: 'Unknown plan' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  if (body.plan !== 'pro') return new Response(JSON.stringify({ error: 'Unknown plan' }), { status: 400, headers: { 'content-type': 'application/json' } });
 
   const origin = new URL(request.url).origin;
   const response = await fetch('https://merchant.revolut.com/api/orders', {
@@ -21,6 +33,8 @@ export async function onRequestPost({ request, env }) {
       amount: 2000,
       currency: 'EUR',
       description: 'Venom GPT Pro — monthly plan',
+      merchant_order_data: { reference: `VENOM-PRO-${user.id}` },
+      metadata: { user_id: user.id, plan: 'pro', email: user.email || '' },
       redirect_url: `${origin}/?payment=revolut-success`
     })
   });
