@@ -1,64 +1,9 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VENOM GPT — Sign In</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#080b0c;color:#eee7d8;font-family:Inter,system-ui,Arial,sans-serif;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 70% 5%,#17383a,#070a0b 65%)}.card{width:min(430px,92vw);background:#0b1315;border:1px solid #3b5051;border-radius:15px;padding:30px;box-shadow:0 30px 100px #000;text-align:center}.logo{font-size:22px;font-weight:950}.logo span{color:#36c0b8}.title{font-size:28px;margin:22px 0 7px}.muted{font-size:8px;color:#82908d;line-height:1.7}.btn{width:100%;border-radius:8px;padding:12px;font-size:9px;font-weight:850;cursor:pointer}.google{border:1px solid #c1bdb2;background:#f1eee5;color:#1b2425;margin-top:18px}.email{border:1px solid #334849;background:#101a1c;color:#dfe7e1;margin-top:9px}.or{display:flex;gap:8px;align-items:center;color:#707d79;font:7px monospace;margin:15px 0}.or:before,.or:after{content:"";height:1px;background:#243133;flex:1}input{width:100%;margin-top:8px;border:1px solid #334345;border-radius:7px;background:#081012;color:#eee7d8;padding:11px;font-size:8px;outline:0}.notice{margin-top:12px;font:7px monospace;color:#56d9d1;min-height:16px}.back{display:inline-block;margin-top:15px;color:#7f8c88;text-decoration:none;font-size:7px}.small{margin-top:14px;padding-top:11px;border-top:1px solid #223032;font:6.5px monospace;color:#5f6c69}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module">
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './supabase-config.js';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-window.venomSupabase = supabase;
-
-async function signInGoogle(){
-  document.getElementById('notice').textContent='Opening Google…';
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider:'google',
-    options:{ redirectTo: window.location.origin + '/auth.html' }
-  });
-  if(error) document.getElementById('notice').textContent = error.message;
-}
-
-async function sendMagicLink(){
-  const email = document.getElementById('email').value.trim();
-  if(!email) { document.getElementById('notice').textContent='Enter your email first.'; return; }
-  document.getElementById('notice').textContent='Sending sign-in link…';
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options:{ emailRedirectTo: window.location.origin + '/auth.html' }
-  });
-  document.getElementById('notice').textContent = error ? error.message : 'Check your email for the secure sign-in link.';
-}
-
-async function handleSession(){
-  const { data } = await supabase.auth.getSession();
-  if(data.session){
-    const user=data.session.user;
-    document.getElementById('notice').textContent = 'Signed in as ' + (user.email || 'your account') + ' — loading workspace…';
-    setTimeout(()=>{ window.location.href='/'; },600);
-  }
-}
-window.signInGoogle=signInGoogle;
-window.sendMagicLink=sendMagicLink;
-supabase.auth.onAuthStateChange((_event,_session)=>handleSession());
-handleSession();
-</script>
-</head>
-<body>
-<div class="card">
-  <div class="logo">VENOM <span>GPT</span></div>
-  <div class="title">Sign in to Venom GPT</div>
-  <div class="muted">One simple account. Use Google or a passwordless email link.</div>
-  <button class="btn google" onclick="signInGoogle()">G&nbsp;&nbsp; Continue with Google</button>
-  <div class="or">OR</div>
-  <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
-  <button class="btn email" onclick="sendMagicLink()">Send me a sign-in link</button>
-  <div id="notice" class="notice"></div>
-  <div class="small">No password to remember. Your account access and owner permissions are handled by Supabase.</div>
-  <a class="back" href="/">← Back to Venom GPT</a>
-</div>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENOM GPT — Sign In</title><style>*{box-sizing:border-box}body{margin:0;background:#080b0c;color:#eee7d8;font-family:Inter,system-ui,Arial,sans-serif;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 70% 5%,#17383a,#070a0b 65%)}.card{width:min(500px,92vw);background:#0b1315;border:1px solid #3b5051;border-radius:15px;padding:34px;box-shadow:0 30px 100px #000;text-align:center}.logo{font-size:25px;font-weight:950}.logo span{color:#36c0b8}.title{font-size:32px;margin:22px 0 8px}.muted{font-size:14px;color:#82908d;line-height:1.7}.btn{width:100%;border-radius:8px;padding:15px;font-size:15px;font-weight:850;cursor:pointer}.google{border:1px solid #c1bdb2;background:#f1eee5;color:#1b2425;margin-top:20px}.notice{margin-top:14px;font:12px/1.5 monospace;color:#56d9d1;min-height:18px}.back{display:inline-block;margin-top:18px;color:#9ba7a3;text-decoration:none;font-size:13px}.small{margin-top:16px;padding-top:13px;border-top:1px solid #223032;font:11px/1.6 monospace;color:#5f6c69}</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
+const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
+async function signInGoogle(){const b=document.getElementById('google'),n=document.getElementById('notice');b.disabled=true;b.textContent='CONNECTING TO GOOGLE…';n.textContent='';try{const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/',queryParams:{prompt:'select_account'}}});if(error)throw error}catch(e){console.error(e);n.textContent='GOOGLE SIGN-IN ERROR · '+(e?.message||String(e));b.disabled=false;b.textContent='G  Continue with Google'}}
+supabase.auth.onAuthStateChange((_event,session)=>{if(session){document.getElementById('notice').textContent='Signed in — loading Venom GPT…';setTimeout(()=>location.replace('/'),250)}});
+(async()=>{const {data:{session}}=await supabase.auth.getSession();if(session)location.replace('/')})();
+</script></head><body><div class="card"><div class="logo">VENOM <span>GPT</span></div><div class="title">Sign in to Venom GPT</div><div class="muted">Continue with Google to enter your Venom GPT workspace.</div><button class="btn google" id="google" onclick="signInGoogle()">G&nbsp;&nbsp; Continue with Google</button><div id="notice" class="notice"></div><div class="small">SECURE GOOGLE AUTH · SUPABASE<br>Your account and owner permissions are handled by Supabase.</div><a class="back" href="/">← Back to Venom GPT</a></div></body></html>
