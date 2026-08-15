@@ -1,0 +1,60 @@
+/* VENOM GPT WORLD TRACKER V4 — clean world map + NYC detail */
+(()=>{
+  const GEO='https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
+  const style=()=>{if(document.getElementById('vgWorldTrackerStyle'))return;const s=document.createElement('style');s.id='vgWorldTrackerStyle';s.textContent=`
+#tracker .vgTracker{overflow:hidden!important;background:#d9d1bb!important;border:1px solid #665f50!important;box-shadow:0 24px 80px #0008!important}
+#tracker .vgChrome{background:#20282a!important;color:#eee5d2!important;border-radius:10px 10px 0 0!important}
+#tracker .vgMap{height:560px!important;position:relative!important;overflow:hidden!important;background:#07131a!important;border:5px solid #d9d1bb!important;touch-action:none!important;cursor:grab!important;user-select:none!important;isolation:isolate}
+#tracker .vgMap.dragging{cursor:grabbing!important}
+.vgWorldViewport{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 42%,#153d52 0,#0a1c29 54%,#050b10 100%)}
+.vgWorldCanvas{position:absolute;width:1200px;height:700px;left:50%;top:50%;transform-origin:50% 50%;will-change:transform}
+.vgWorldSvg{width:100%;height:100%;display:block;overflow:visible}
+.vgWorldCountry{fill:#183c48;stroke:#4c8790;stroke-width:.8;vector-effect:non-scaling-stroke;transition:fill .15s,stroke .15s;cursor:pointer}
+.vgWorldCountry:hover{fill:#28606a;stroke:#9ce5df;stroke-width:1.6}
+.vgWorldCountry.active{fill:#7d4637;stroke:#ffd8a4;stroke-width:1.8}
+.vgGraticule{fill:none;stroke:#5bb6bd;stroke-width:.65;opacity:.16;vector-effect:non-scaling-stroke}
+.vgOceanLine{fill:none;stroke:#63d0d1;stroke-width:1;opacity:.25;vector-effect:non-scaling-stroke}
+.vgWorldLabel{font:900 18px monospace;fill:#77d7d3;letter-spacing:3px;opacity:.7;pointer-events:none}
+.vgWorldSub{font:800 10px monospace;fill:#a9c1bf;letter-spacing:1.2px;opacity:.8;pointer-events:none}
+.vgWorldHud{position:absolute;left:14px;top:14px;z-index:20;background:#071014dd;border:1px solid #58706f;border-radius:9px;padding:9px 11px;color:#e8dfca;font:800 9px/1.5 monospace;letter-spacing:.5px;box-shadow:0 8px 30px #0005}
+.vgWorldHud b{color:#ff7049}.vgWorldHud span{color:#72d7d1}
+.vgWorldControls{position:absolute;right:14px;top:14px;z-index:20;display:flex;flex-direction:column;gap:6px}
+.vgWorldControls button{width:40px;height:36px;border:2px solid #273537;border-radius:7px;background:#eee4cb;color:#172528;font:900 17px monospace;cursor:pointer;box-shadow:0 4px 0 #101a1c}
+.vgWorldControls button:hover{background:#58d0cb;color:#071114}.vgWorldControls .wide{font-size:8px;height:30px}
+.vgWorldScale{position:absolute;left:14px;bottom:14px;z-index:20;background:#071014dd;border:1px solid #526766;border-radius:7px;padding:7px 9px;color:#bdcac7;font:800 8px monospace}
+.vgWorldSignal{cursor:pointer}.vgWorldSignal .pulse{fill:#ff6843;opacity:.15;animation:vgWorldPulse 1.7s infinite}.vgWorldSignal .core{fill:#ff6843;stroke:#ffe0b0;stroke-width:2;vector-effect:non-scaling-stroke}.vgWorldSignal.teal .core{fill:#48d2ca}.vgWorldSignal text{font:900 10px monospace;fill:#f5e7ce;paint-order:stroke;stroke:#071014;stroke-width:4px;stroke-linejoin:round}
+.vgNYCLayer{opacity:0;pointer-events:none;transition:opacity .25s}.vgNYCLayer.visible{opacity:1;pointer-events:auto}
+.vgNYCLand{fill:#18363b;stroke:#69aaa9;stroke-width:2}.vgNYCWater{fill:#07161d}.vgNYCRoad{fill:none;stroke:#4ca7aa;stroke-width:1.5;opacity:.52}.vgNYCMajor{fill:none;stroke:#8ad6d1;stroke-width:2.4;opacity:.6}.vgNYCLabel{font:900 17px monospace;fill:#7bd8d3;letter-spacing:2px;paint-order:stroke;stroke:#071014;stroke-width:5px}.vgNYCSignal{cursor:pointer}.vgNYCSignal circle:first-child{fill:#ff6843;opacity:.16}.vgNYCSignal circle:nth-child(2){fill:#ff6843;stroke:#ffe0b0;stroke-width:2}.vgNYCSignal.teal circle:nth-child(2){fill:#45d1c9}.vgNYCSignal text{font:900 10px monospace;fill:#f4e6cd;paint-order:stroke;stroke:#071014;stroke-width:4px}
+@keyframes vgWorldPulse{0%,100%{r:15;opacity:.2}50%{r:27;opacity:.03}}
+@media(max-width:700px){#tracker .vgMap{height:470px!important}.vgWorldHud{font-size:8px}.vgWorldLabel{font-size:14px}}
+`;document.head.appendChild(s)};
+  function project(lon,lat){return [(lon+180)/360*1200,(90-lat)/180*700]}
+  function ringPath(r){return r.map((p,i)=>{const q=project(p[0],p[1]);return (i?'L':'M')+q[0].toFixed(2)+' '+q[1].toFixed(2)}).join(' ')+'Z'}
+  function geometryPath(g){if(!g)return '';if(g.type==='Polygon')return g.coordinates.map(ringPath).join(' ');if(g.type==='MultiPolygon')return g.coordinates.map(p=>p.map(ringPath).join(' ')).join(' ');return ''}
+  function build(){
+    const map=document.querySelector('#tracker .vgMap');if(!map||map.dataset.worldV4==='1')return;map.dataset.worldV4='1';style();
+    map.innerHTML=`<div class="vgWorldViewport"><div class="vgWorldCanvas" id="vgWorldCanvas"><svg class="vgWorldSvg" viewBox="0 0 1200 700" aria-label="Interactive fictional world Spider Tracker map"><rect width="1200" height="700" fill="#07131a"/><g id="vgGraticules"></g><g id="vgCountries"></g><g class="vgWorldLabels"><text class="vgWorldLabel" x="175" y="300">AMERICAS</text><text class="vgWorldLabel" x="505" y="245">EUROPE</text><text class="vgWorldLabel" x="470" y="365">AFRICA</text><text class="vgWorldLabel" x="760" y="255">ASIA</text><text class="vgWorldLabel" x="825" y="540">AUSTRALIA</text><text class="vgWorldSub" x="505" y="270">GLOBAL SIGNAL NETWORK</text></g><g id="vgGlobalSignals"></g><g id="vgNYCLayer" class="vgNYCLayer"><path class="vgNYCWater" d="M0 0h1200v700H0z" opacity=".55"/><path class="vgNYCLand" d="M420 80l50-12 20 40-14 55 20 65-24 62 18 62-22 72 20 60-28 80-35 38-28-38 8-62-18-63 20-64-15-65 18-65-16-62z"/><path class="vgNYCLand" d="M520 90l185-28 120 35 95 70 70 95-20 85-70 65-65 85-100 55-90-25-55-75 25-75-35-85 28-82-40-60z"/><path class="vgNYCLand" d="M520 505l70-18 65 32 80 18 65 55 90 25 65 55-40 42-100-10-90-45-80-10-70-45-60-65z"/><path class="vgNYCLand" d="M285 125l100-20 25 65-18 70 20 65-22 72-30 45-42-38 14-67-20-62 18-70z"/><path class="vgNYCRoad" d="M430 85l32 520M448 75l34 500M470 85l36 475M520 120l360 95M515 185l390 105M520 255l375 100M530 330l330 90M550 405l290 75M575 500l270 115M610 470l270 105"/><path class="vgNYCMajor" d="M410 140Q480 300 430 555M500 265Q690 340 865 430M570 520Q710 545 835 625"/><text class="vgNYCLabel" x="415" y="250">MANHATTAN</text><text class="vgNYCLabel" x="730" y="170">QUEENS</text><text class="vgNYCLabel" x="710" y="575">BROOKLYN</text><text class="vgNYCLabel" x="285" y="105">BRONX</text><g class="vgNYCSignal" transform="translate(455 315)" data-name="MIDTOWN"><circle r="24"/><circle r="8"/><text x="14" y="4">LIVE</text></g><g class="vgNYCSignal teal" transform="translate(450 250)" data-name="TIMES SQUARE"><circle r="15"/><circle r="6"/><text x="12" y="4">TIMES SQ</text></g><g class="vgNYCSignal teal" transform="translate(690 320)" data-name="QUEENS"><circle r="15"/><circle r="6"/><text x="12" y="4">QUEENS</text></g><g class="vgNYCSignal" transform="translate(720 515)" data-name="BROOKLYN"><circle r="15"/><circle r="6"/><text x="12" y="4">BROOKLYN</text></g></g></svg></div></div><div class="vgWorldHud"><b>● LIVE</b> &nbsp; SPIDER SIGNAL NETWORK<br><span id="vgWorldMode">WORLD VIEW</span> · <span id="vgWorldCountry">ALL COUNTRIES</span></div><div class="vgWorldControls"><button id="vgWorldIn">+</button><button id="vgWorldOut">−</button><button id="vgWorldAll" class="wide">WORLD</button><button id="vgWorldNYC" class="wide">NYC</button></div><div class="vgWorldScale">FICTIONAL DEMO TELEMETRY · CLICK A COUNTRY OR SIGNAL</div>`;
+    const svg=document.querySelector('.vgWorldSvg'),countries=document.getElementById('vgCountries'),gr=document.getElementById('vgGraticules'),signals=document.getElementById('vgGlobalSignals'),canvas=document.getElementById('vgWorldCanvas'),nyc=document.getElementById('vgNYCLayer');
+    for(let lon=-180;lon<=180;lon+=30){const [x]=project(lon,0);gr.insertAdjacentHTML('beforeend',`<path class="vgGraticule" d="M${x} 0V700"/>`)}
+    for(let lat=-60;lat<=60;lat+=30){const [,y]=project(0,lat);gr.insertAdjacentHTML('beforeend',`<path class="vgGraticule" d="M0 ${y}H1200"/>`)}
+    const points=[[-74,40.7,'NYC','teal'],[-0.1,51.5,'LONDON','teal'],[2.35,48.86,'PARIS','teal'],[139.7,35.7,'TOKYO','teal'],[151.2,-33.9,'SYDNEY','teal'],[116.4,39.9,'BEIJING','teal'],[77.2,28.6,'DELHI','teal'],[-43.2,-22.9,'RIO','teal'],[37.6,55.75,'MOSCOW','teal']];
+    points.forEach(([lon,lat,name,c])=>{const [x,y]=project(lon,lat);signals.insertAdjacentHTML('beforeend',`<g class="vgWorldSignal ${c}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" data-name="${name}"><circle class="pulse" r="15"/><circle class="core" r="5"/><text x="10" y="4">${name}</text></g>`)})
+    const setMode=(text)=>{const el=document.getElementById('vgWorldMode');if(el)el.textContent=text};
+    const countryName=(f)=>f?.properties?.name||f?.properties?.NAME||f?.properties?.ADMIN||'COUNTRY';
+    fetch(GEO,{cache:'force-cache'}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(data=>{(data.features||[]).forEach((f,i)=>{const p=geometryPath(f.geometry);if(!p)return;const el=document.createElementNS('http://www.w3.org/2000/svg','path');el.setAttribute('d',p);el.setAttribute('class','vgWorldCountry');el.dataset.name=countryName(f);el.addEventListener('click',e=>{e.stopPropagation();countries.querySelectorAll('.active').forEach(x=>x.classList.remove('active'));el.classList.add('active');const c=document.getElementById('vgWorldCountry');if(c)c.textContent=el.dataset.name.toUpperCase();setMode('COUNTRY VIEW')});countries.appendChild(el)})}).catch(()=>{setMode('WORLD VIEW · MAP DATA RETRY');});
+    let zoom=.62,panX=0,panY=0,dragging=false,sx=0,sy=0,ox=0,oy=0;
+    const render=()=>{canvas.style.transform=`translate(calc(-50% + ${panX}px),calc(-50% + ${panY}px)) scale(${zoom})`};
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const setZoom=(z,cx=0,cy=0)=>{const old=zoom;zoom=clamp(z,.24,3.5);if(cx||cy){const f=zoom/old;panX=cx+(panX-cx)*f;panY=cy+(panY-cy)*f}render()};
+    const world=()=>{zoom=.38;panX=0;panY=0;nyc.classList.remove('visible');setMode('WORLD VIEW');const c=document.getElementById('vgWorldCountry');if(c)c.textContent='ALL COUNTRIES';countries.querySelectorAll('.active').forEach(x=>x.classList.remove('active'));render()};
+    const centerNYC=()=>{zoom=1.05;panX=-110;panY=15;nyc.classList.add('visible');setMode('NYC CITY VIEW');const c=document.getElementById('vgWorldCountry');if(c)c.textContent='NEW YORK';render()};
+    document.getElementById('vgWorldIn').onclick=()=>setZoom(zoom+.22);document.getElementById('vgWorldOut').onclick=()=>setZoom(zoom-.22);document.getElementById('vgWorldAll').onclick=world;document.getElementById('vgWorldNYC').onclick=centerNYC;
+    map.addEventListener('wheel',e=>{e.preventDefault();setZoom(zoom+(e.deltaY<0?.15:-.15),e.clientX-map.getBoundingClientRect().left-map.clientWidth/2,e.clientY-map.getBoundingClientRect().top-map.clientHeight/2)},{passive:false});
+    map.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;dragging=true;map.classList.add('dragging');sx=e.clientX;sy=e.clientY;ox=panX;oy=panY;map.setPointerCapture(e.pointerId)});
+    map.addEventListener('pointermove',e=>{if(dragging){panX=ox+(e.clientX-sx);panY=oy+(e.clientY-sy);render()}});
+    map.addEventListener('pointerup',e=>{dragging=false;map.classList.remove('dragging');try{map.releasePointerCapture(e.pointerId)}catch{}});map.addEventListener('pointercancel',()=>{dragging=false;map.classList.remove('dragging')});
+    map.querySelectorAll('.vgWorldSignal,.vgNYCSignal').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const c=document.getElementById('vgWorldCountry');if(c)c.textContent=(el.dataset.name||'SIGNAL').toUpperCase();setMode(el.dataset.name==='NYC'?'NYC CITY VIEW':'SIGNAL VIEW')}));
+    world();
+  }
+  const boot=()=>{style();build()};if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);window.addEventListener('load',boot)}else{boot();window.addEventListener('load',boot)}
+})();
