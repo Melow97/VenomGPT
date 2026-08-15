@@ -51,7 +51,7 @@ async function callOpenAI(messages, env) {
 
 async function callWorkersAI(messages, env) {
   if (!env.AI) throw new Error('Workers AI binding is not configured');
-  const model = env.WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct';
+  const model = env.WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8';
   const prompt = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n') + '\n\nASSISTANT:';
   const result = await env.AI.run(model, { prompt });
   return result?.response || '';
