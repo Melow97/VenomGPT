@@ -1,9 +1,9 @@
 /* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-46';
+  const VERSION='20260815-47';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
-  function ensureScript(src,key){return new Promise(resolve=>{if(document.querySelector('script['+key+']'))return resolve();const s=document.createElement('script');s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()};document.body.appendChild(s)})}
+  function ensureScript(src,key){return new Promise(resolve=>{if(document.querySelector('script['+key+']'))return resolve();const s=document.createElement('script');s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()}})}
   async function getClient(){let n=0;while(!window.supabase?.createClient&&n++<80)await new Promise(r=>setTimeout(r,100));if(!window.supabase?.createClient)throw new Error('Supabase library did not load.');if(!window.__venomSupabase)window.__venomSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});return window.__venomSupabase}
   function makeInteractive(){document.querySelectorAll('a,button').forEach(el=>{if(el.dataset.venomInteraction)return;el.dataset.venomInteraction='1';el.addEventListener('pointerdown',()=>el.classList.add('venom-pressed'),{passive:true});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>el.classList.remove('venom-pressed'),{passive:true}))})}
   async function boot(){
@@ -22,10 +22,11 @@
     await ensureScript('/venom-ui-polish-v2.js?v='+VERSION,'data-venom-ui-polish-v2');
     await ensureScript('/venom-ui-polish-v3.js?v='+VERSION,'data-venom-ui-polish-v3');
     await ensureScript('/venom-comic-home-v1.js?v='+VERSION,'data-venom-comic-home-v1');
+    await ensureScript('/venom-ai-visuals-v1.js?v='+VERSION,'data-venom-ai-visuals-v1');
     makeInteractive();
     new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     try{await getClient()}catch(e){console.warn('[VENOM AUTH] client warmup failed',e)}
-    console.info('[VENOM] production boot '+VERSION+' ready; comic-book home layer loaded');
+    console.info('[VENOM] production boot '+VERSION+' ready; reactive voice + thinking visuals loaded');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
