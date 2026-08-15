@@ -14,4 +14,22 @@ function bindMap(){const map=document.getElementById('vt-map');if(!map)return;le
 function startLive(){clearInterval(timer);timer=setInterval(()=>{routeIndex=(routeIndex+1)%route.length;moveSignal(false)},3200)}
 window.openTracker=function(){landing.style.display='none';auth.style.display='none';app.style.display='block';active(null);render();startLive();window.scrollTo({top:0,behavior:'smooth'})};window.addEventListener('beforeunload',()=>{clearInterval(timer);clearInterval(clock)});
 const loadUI=()=>{if(!document.getElementById('venom-dashboard-css')){const l=document.createElement('link');l.id='venom-dashboard-css';l.rel='stylesheet';l.href='/dashboard-overhaul.css';document.head.appendChild(l)}if(!document.querySelector('script[data-venom-dashboard]')){const s=document.createElement('script');s.src='/dashboard-overhaul.js';s.dataset.venomDashboard='1';document.body.appendChild(s)}if(!document.querySelector('script[data-venom-home-map]')){const h=document.createElement('script');h.src='/home-map-enhance.js';h.dataset.venomHomeMap='1';document.body.appendChild(h)}};window.addEventListener('load',loadUI);window.addEventListener('DOMContentLoaded',loadUI);
+
+/* AUTH HOTFIX: keep Google login independent from the fragile app.js client variable. */
+window.login=async function(){
+  const button=document.getElementById('google');
+  const error=document.getElementById('err');
+  if(button){button.disabled=true;button.textContent='CONNECTING TO GOOGLE…'}
+  if(error)error.textContent='';
+  try{
+    if(!window.supabase) throw new Error('Supabase client library did not load');
+    const supabaseClient=window.supabase.createClient('https://dqqqagpsaaalsztblmsc.supabase.co','sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const {error:authError}=await supabaseClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/',queryParams:{prompt:'select_account'}}});
+    if(authError)throw authError;
+  }catch(e){
+    console.error('VENOM GOOGLE AUTH',e);
+    if(error)error.textContent='GOOGLE SIGN-IN ERROR · '+(e?.message||String(e));
+    if(button){button.disabled=false;button.textContent='G  Continue with Google'}
+  }
+};
 })();
