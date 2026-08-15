@@ -1,6 +1,6 @@
 /* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-45';
+  const VERSION='20260815-46';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   function ensureScript(src,key){return new Promise(resolve=>{if(document.querySelector('script['+key+']'))return resolve();const s=document.createElement('script');s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()};document.body.appendChild(s)})}
@@ -21,10 +21,11 @@
     await ensureScript('/venom-ui-bridge-v1.js?v='+VERSION,'data-venom-ui-bridge');
     await ensureScript('/venom-ui-polish-v2.js?v='+VERSION,'data-venom-ui-polish-v2');
     await ensureScript('/venom-ui-polish-v3.js?v='+VERSION,'data-venom-ui-polish-v3');
+    await ensureScript('/venom-comic-home-v1.js?v='+VERSION,'data-venom-comic-home-v1');
     makeInteractive();
     new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     try{await getClient()}catch(e){console.warn('[VENOM AUTH] client warmup failed',e)}
-    console.info('[VENOM] production boot '+VERSION+' ready; auth-controller-v2 owns session routing; premium UI + reference polish loaded');
+    console.info('[VENOM] production boot '+VERSION+' ready; comic-book home layer loaded');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
