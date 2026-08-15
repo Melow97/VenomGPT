@@ -1,6 +1,6 @@
 /* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT */
 (()=>{
-  const VERSION='20260816-89';
+  const VERSION='20260816-90';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.src=src+'?v='+VERSION;
@@ -27,7 +27,8 @@
     await load('/venom-company-logo-v1.js');
     await load('/venom-home-red-black-override-v1.js');
     await load('/venom-auth-guarantee-v2.js');
-    console.info('[VENOM] production '+VERSION+' loaded: final red/black Home override + canonical spider mark + deterministic Google -> AI guarantee');
+    await load('/venom-footer-brand-v1.js');
+    console.info('[VENOM] production '+VERSION+' loaded: red/black Home + restored legal footer + canonical spider mark + deterministic Google -> AI guarantee');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
