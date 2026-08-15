@@ -8,10 +8,23 @@ function cleanMessages(messages) {
     .map(m => ({ role: m.role, content: m.content.slice(0, 12000) }));
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (e) {
+    if (e?.name === 'AbortError') throw new Error(`AI provider timed out after ${timeoutMs / 1000}s`);
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callOllama(messages, env) {
   const base = (env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
   const model = env.OLLAMA_MODEL || 'llama3.2';
-  const r = await fetch(`${base}/api/chat`, {
+  const r = await fetchWithTimeout(`${base}/api/chat`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ model, messages, stream: false })
@@ -26,7 +39,7 @@ async function callOpenAI(messages, env) {
   if (!key) throw new Error('OPENAI_API_KEY is not configured');
   const base = (env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
   const model = env.OPENAI_MODEL || 'gpt-4o-mini';
-  const r = await fetch(`${base}/chat/completions`, {
+  const r = await fetchWithTimeout(`${base}/chat/completions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
     body: JSON.stringify({ model, messages, temperature: 0.7 })
@@ -53,12 +66,28 @@ export async function onRequestPost({ request, env }) {
 
   try {
     let reply = '';
-    const provider = env.AI ? 'workers-ai' : env.OPENAI_API_KEY ? 'openai' : 'ollama';
-    if (provider === 'workers-ai') reply = await callWorkersAI(messages, env);
-    else if (provider === 'openai') reply = await callOpenAI(messages, env);
-    else reply = await callOllama(messages, env);
+    let provider;
 
-    if (!reply) return json({ error: 'AI provider returned an empty response' }, 502);
+    if (env.AI) {
+      provider = 'workers-ai';
+      reply = await callWorkersAI(messages, env);
+    } else if (env.OPENAI_API_KEY) {
+      provider = 'openai';
+      reply = await callOpenAI(messages, env);
+    } else if (env.OLLAMA_BASE_URL) {
+      provider = 'ollama';
+      reply = await callOllama(messages, env);
+    } else {
+      const host = new URL(request.url).hostname;
+      if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+        provider = 'ollama';
+        reply = await callOllama(messages, env);
+      } else {
+        return json({ error: 'No production AI provider is configured. Configure Workers AI, OPENAI_API_KEY, or OLLAMA_BASE_URL.' }, 503);
+      }
+    }
+
+    if (!reply) return json({ error: 'AI provider returned an empty response', provider }, 502);
     return json({ ok: true, reply, provider });
   } catch (e) {
     console.error('[VENOM /api/chat]', e);
