@@ -1,7 +1,12 @@
 /* VENOM AI ENTRY REPAIR — guarantees authenticated workspace renders */
 (()=>{
-  const VERSION='20260815-13';
+  const VERSION='20260815-14';
   let started=false;
+  const loadPolish=()=>new Promise(resolve=>{
+    if(window.venomOpenChat)return resolve();
+    if(document.querySelector('[data-venom-ai-workspace]'))return resolve();
+    const s=document.createElement('script');s.src='/ai-workspace-polish.js?v='+VERSION;s.setAttribute('data-venom-ai-workspace','1');s.onload=resolve;s.onerror=e=>{console.error('[VENOM AI] polish failed',e);resolve()};document.body.appendChild(s);
+  });
   const showApp=()=>{
     const landing=document.getElementById('landing'),auth=document.getElementById('auth'),app=document.getElementById('app'),main=document.getElementById('main');
     if(!app||!main)return false;
@@ -11,9 +16,13 @@
     if(auth)auth.style.display='none';
     return true;
   };
-  const render=()=>{
+  const render=async()=>{
     if(!showApp())return false;
+    await loadPolish();
     const main=document.getElementById('main');
+    if(typeof window.venomOpenChat==='function'){
+      try{window.venomOpenChat();started=true;return true}catch(e){console.error('[VENOM AI ENTRY] polished chat failed',e)}
+    }
     if(typeof window.newChat==='function'){
       try{window.newChat();started=true;return true}catch(e){console.error('[VENOM AI ENTRY] newChat failed',e)}
     }
