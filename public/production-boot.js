@@ -1,7 +1,7 @@
 /* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT
    One authoritative workspace renderer + protected design/interaction + deterministic auth callback. */
 (()=>{
-  const VERSION='20260815-82';
+  const VERSION='20260815-83';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.src=src+'?v='+VERSION;
@@ -22,7 +22,8 @@
     await load('/venom-auth-ai-handoff-v1.js');
     await load('/venom-feature-tiers-v1.js');
     await load('/venom-auth-final-override-v1.js');
-    console.info('[VENOM] production '+VERSION+' loaded: deterministic Google -> AI workspace + feature tiers + Spider-Tech');
+    await load('/venom-home-tiers-v2.js');
+    console.info('[VENOM] production '+VERSION+' loaded: home Free/Plus/Pro tiers + connector ecosystem + deterministic Google -> AI workspace + Spider-Tech');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
