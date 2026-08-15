@@ -11,14 +11,18 @@ async function hmac(secret, message) {
   return Array.from(bytes).map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-async function setPro(env, userId) {
+async function setBilling(env, userId, patch) {
   const supabaseUrl = env.SUPABASE_URL || 'https://dqqqagpsaaalsztblmsc.supabase.co';
   const r = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
-    method: 'PATCH',
-    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'content-type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify({ plan: 'pro' })
+    method: 'PATCH', headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'content-type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({ ...patch, billing_updated_at: new Date().toISOString() })
   });
   if (!r.ok) throw new Error(`Supabase profile update failed: ${r.status}`);
+}
+
+function userIdFromReference(ref) {
+  const m = String(ref || '').match(/^VENOM-(?:PRO|MONTHLY|ANNUAL)-([0-9a-f-]{20,})$/i);
+  return m?.[1] || null;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -29,23 +33,23 @@ export async function onRequestPost({ request, env }) {
   const ts = Number(timestamp);
   if (!timestamp || !Number.isFinite(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) return new Response('Invalid timestamp', { status: 401 });
   const expected = 'v1=' + await hmac(env.REVOLUT_WEBHOOK_SECRET, `v1.${timestamp}.${raw}`);
-  const valid = signature.split(',').some(item => timingSafeEqual(item.trim(), expected));
-  if (!valid) return new Response('Invalid signature', { status: 401 });
+  if (!signature.split(',').some(item => timingSafeEqual(item.trim(), expected))) return new Response('Invalid signature', { status: 401 });
 
   let event = {};
   try { event = JSON.parse(raw); } catch (_) { return new Response('Invalid JSON', { status: 400 }); }
   if (event.event !== 'ORDER_COMPLETED') return new Response('OK');
-
   const orderId = event.order_id || event.data?.id || event.data?.order_id;
   if (!orderId) return new Response('Missing order id', { status: 400 });
 
-  const orderResponse = await fetch(`https://merchant.revolut.com/api/orders/${encodeURIComponent(orderId)}`, {
-    headers: { Authorization: `Bearer ${env.REVOLUT_SECRET_KEY}`, 'Revolut-Api-Version': '2026-04-20' }
-  });
+  const orderResponse = await fetch(`https://merchant.revolut.com/api/orders/${encodeURIComponent(orderId)}`, { headers: { Authorization: `Bearer ${env.REVOLUT_SECRET_KEY}`, 'Revolut-Api-Version': '2026-04-20' } });
   const order = await orderResponse.json().catch(() => ({}));
   if (!orderResponse.ok || order.state !== 'completed') return new Response('Order not completed', { status: 409 });
-  if (order.currency !== 'EUR' || Number(order.amount) !== 2000 || order.metadata?.plan !== 'pro') return new Response('Order validation failed', { status: 400 });
 
-  await setPro(env, order.metadata.user_id);
+  const plan = order.metadata?.plan || (Number(order.amount) === 23000 ? 'annual' : Number(order.amount) === 2000 ? 'pro' : null);
+  const userId = order.metadata?.user_id || userIdFromReference(order.merchant_order_ext_ref || order.merchant_order_data?.reference || event.merchant_order_ext_ref);
+  const validAmount = plan === 'annual' ? Number(order.amount) === 23000 : plan === 'pro' ? Number(order.amount) === 2000 : false;
+  if (order.currency !== 'EUR' || !validAmount || !userId) return new Response('Order validation failed', { status: 400 });
+
+  await setBilling(env, userId, { plan: 'pro', billing_plan: plan, billing_status: 'active' });
   return new Response('OK');
 }
