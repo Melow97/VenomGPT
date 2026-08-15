@@ -1,7 +1,6 @@
-/* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT
-   One authoritative workspace renderer + protected design/interaction + deterministic auth callback. */
+/* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT */
 (()=>{
-  const VERSION='20260815-87';
+  const VERSION='20260815-88';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.src=src+'?v='+VERSION;
@@ -26,7 +25,9 @@
     await load('/venom-home-features-hub-v1.js');
     await load('/venom-spider-seller-polish-v1.js');
     await load('/venom-company-logo-v1.js');
-    console.info('[VENOM] production '+VERSION+' loaded: canonical supplied spider company mark + existing Home/AI/Spider-Tech stack');
+    await load('/venom-home-red-black-v1.js');
+    await load('/venom-auth-guarantee-v1.js');
+    console.info('[VENOM] production '+VERSION+' loaded: red/black Home + canonical spider mark + deterministic Google -> AI guarantee');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
