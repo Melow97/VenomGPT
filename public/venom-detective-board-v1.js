@@ -1,0 +1,33 @@
+/* VENOM GPT — SPIDER-TECH DETECTIVE BOARD */
+(()=>{
+'use strict';
+if(window.__VENOM_DETECTIVE_BOARD__)return;window.__VENOM_DETECTIVE_BOARD__=true;
+const css=`
+.vdb-layer{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden;border-radius:inherit}
+.vdb-string{position:absolute;height:2px;transform-origin:0 50%;background:linear-gradient(90deg,#7b1010,#e22b22,#9b1717);box-shadow:0 0 5px #d22b2238;opacity:.78}
+.vdb-pin{position:absolute;width:8px;height:8px;border-radius:50%;background:#d82b24;border:2px solid #160808;box-shadow:0 0 0 2px #e13b3344,0 0 9px #d22b2266}
+.vdb-card{position:absolute;padding:6px 9px;border:1px solid #b7282838;background:#071012d9;color:#b8eeea;border-radius:5px;font:700 8px ui-monospace,monospace;letter-spacing:.7px;box-shadow:0 4px 15px #0008;transform:rotate(-1deg)}
+.vdb-card:nth-of-type(2n){transform:rotate(1.3deg)}
+.vdb-web{position:absolute;width:180px;height:180px;border-radius:50%;opacity:.34}
+.vdb-web:before,.vdb-web:after{content:"";position:absolute;inset:0;border:1px solid #bfe9e755;border-radius:50%}
+.vdb-web:after{inset:25px;border-color:#bfe9e744;box-shadow:0 0 0 24px transparent,0 0 0 25px #bfe9e72a,0 0 0 48px transparent,0 0 0 49px #bfe9e71d}
+.vdb-web i{position:absolute;left:50%;top:0;width:1px;height:100%;background:#bfe9e744;transform-origin:center}.vdb-web i:nth-child(1){transform:rotate(0)}.vdb-web i:nth-child(2){transform:rotate(45deg)}.vdb-web i:nth-child(3){transform:rotate(90deg)}.vdb-web i:nth-child(4){transform:rotate(135deg)}
+.vdb-web-a{right:-30px;top:-40px}.vdb-web-b{left:-55px;bottom:-70px;transform:scale(.72)}
+.vdb-spider{position:absolute;width:15px;height:13px;z-index:20;filter:drop-shadow(0 2px 4px #000);animation:vdbcrawl 22s linear infinite}
+.vdb-spider:before{content:"";position:absolute;left:5px;top:3px;width:6px;height:8px;border-radius:50%;background:#101010;border:1px solid #d43b35}
+.vdb-spider:after{content:"\\\\ / /\\\\";position:absolute;left:-5px;top:0;font:900 8px monospace;color:#0a0a0a;white-space:nowrap;letter-spacing:-3px}
+.vdb-silk{position:absolute;width:1px;height:70px;background:linear-gradient(#d9ffff55,transparent);left:50%;top:8px;transform-origin:top;opacity:.6}
+@keyframes vdbcrawl{0%{left:12%;top:18%;transform:rotate(0)}24%{left:39%;top:27%;transform:rotate(18deg)}48%{left:74%;top:21%;transform:rotate(-8deg)}72%{left:61%;top:72%;transform:rotate(12deg)}100%{left:18%;top:79%;transform:rotate(-12deg)}}
+@media(max-width:700px){.vdb-card{font-size:7px}.vdb-web{opacity:.22}}
+`;
+const st=document.createElement('style');st.id='venom-detective-board-style';st.textContent=css;document.head.appendChild(st);
+function add(){if(document.querySelector('.vdb-layer'))return;const target=document.querySelector('#tracker .map,#tracker .tracker-map,.spider-tracker .map,.spider-tracker,.va-tracker,.tracker-map');if(!target)return;const cs=getComputedStyle(target);if(cs.position==='static')target.style.position='relative';const layer=document.createElement('div');layer.className='vdb-layer';
+const pts=[[18,24],[38,31],[66,22],[80,48],[59,70],[27,65]];
+const cardData=[['CASE // A-17',18,24],['SIGNAL // B-04',38,31],['TRACE // C-09',66,22],['FIELD // D-12',80,48],['VECTOR // E-03',59,70],['NODE // F-08',27,65]];
+pts.slice(0,-1).forEach((p,i)=>{const q=pts[i+1];const dx=q[0]-p[0],dy=q[1]-p[1];const len=Math.sqrt(dx*dx+dy*dy);const line=document.createElement('i');line.className='vdb-string';line.style.left=p[0]+'%';line.style.top=p[1]+'%';line.style.width=len+'%';line.style.transform=`rotate(${Math.atan2(dy,dx)*180/Math.PI}deg)`;layer.appendChild(line)});
+pts.forEach(p=>{const pin=document.createElement('i');pin.className='vdb-pin';pin.style.left=`calc(${p[0]}% - 4px)`;pin.style.top=`calc(${p[1]}% - 4px)`;layer.appendChild(pin)});
+cardData.forEach(([t,x,y])=>{const c=document.createElement('span');c.className='vdb-card';c.textContent=t;c.style.left=x+'%';c.style.top=`calc(${y}% + 10px)`;layer.appendChild(c)});
+['vdb-web-a','vdb-web-b'].forEach(cls=>{const w=document.createElement('div');w.className='vdb-web '+cls;for(let i=0;i<4;i++)w.appendChild(document.createElement('i'));layer.appendChild(w)});
+const spider=document.createElement('div');spider.className='vdb-spider';spider.innerHTML='<span class="vdb-silk"></span>';layer.appendChild(spider);target.appendChild(layer)}
+function run(){add();setTimeout(add,500)}[300,900,1800,3500].forEach(ms=>setTimeout(run,ms));window.addEventListener('venom:open-tracker',()=>setTimeout(add,150));
+})();
