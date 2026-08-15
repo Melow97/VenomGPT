@@ -1,92 +1,47 @@
-/* VENOM GPT — PREMIUM INTEGRATIONS DROPDOWN */
+/* VENOM GPT — PREMIUM INTEGRATIONS DROPDOWN v2 */
 (()=>{
-  if(window.__VENOM_INTEGRATIONS_DROPDOWN__) return;
-  window.__VENOM_INTEGRATIONS_DROPDOWN__=true;
-
-  const apps=[
-    ['Spotify','SP','Music & Media','Bring playlists, listening context and media workflows into Venom.'],
-    ['Shopify','SH','Commerce','Connect stores, products, orders and commerce workflows.'],
-    ['LinkedIn','in','Work & Identity','Use professional profiles, recruiting and outreach workflows.'],
-    ['DocuSign','DS','Documents','Prepare, review and route documents for signing.'],
-    ['Google Drive','GD','Files & Cloud','Find, summarize and work with files from Drive.'],
-    ['Gmail','GM','Communication','Turn email threads into searchable, actionable work.'],
-    ['Slack','SL','Teamwork','Bring conversations, channels and team context into one workspace.'],
-    ['Notion','N','Knowledge','Connect notes, wikis, projects and internal knowledge.'],
-    ['Microsoft 365','M365','Productivity','Work across Office files, calendars and business workflows.'],
-    ['Canva','CA','Creative','Create, review and move designs through your AI workflow.'],
-    ['GitHub','GH','Engineering','Work with repositories, issues, pull requests and code context.'],
-    ['Jira','JR','Engineering','Connect tickets, projects and delivery workflows.'],
-    ['Adobe Acrobat','AA','Documents','Work with PDFs, documents and review workflows.'],
-    ['Figma','FG','Creative','Bring designs, prototypes and product context into your workspace.'],
-    ['Zoom','ZM','Communication','Connect meetings and turn conversations into follow-up work.'],
-    ['Salesforce','SF','CRM','Bring customer, sales and pipeline context into Venom.']
-  ];
-
-  const css=`
-    .venom-integrations-panel{position:fixed;z-index:2147483000;width:min(760px,calc(100vw - 28px));max-height:min(650px,calc(100vh - 100px));overflow:auto;display:none;padding:18px;border:1px solid rgba(255,255,255,.12);border-radius:22px;background:linear-gradient(145deg,rgba(17,17,21,.98),rgba(5,5,8,.985));box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 45px rgba(255,255,255,.045);backdrop-filter:blur(24px);color:#fff;font-family:inherit}
-    .venom-integrations-panel.is-open{display:block;animation:venomIntIn .16s ease-out}
-    @keyframes venomIntIn{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .venom-int-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding:4px 4px 15px}
-    .venom-int-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.48;font-weight:700;margin-bottom:5px}
-    .venom-int-title{font-size:21px;font-weight:750;letter-spacing:-.02em}
-    .venom-int-sub{font-size:12px;line-height:1.5;opacity:.55;margin-top:4px;max-width:500px}
-    .venom-int-pill{font-size:11px;white-space:nowrap;padding:7px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.045);opacity:.7}
-    .venom-int-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-    .venom-int-app{display:flex;align-items:center;gap:10px;min-width:0;padding:11px;border-radius:15px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);transition:.16s ease;cursor:pointer}
-    .venom-int-app:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.075)}
-    .venom-int-icon{width:36px;height:36px;flex:0 0 36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#26262d,#101014);border:1px solid rgba(255,255,255,.1);font-size:10px;font-weight:800;letter-spacing:-.04em;box-shadow:inset 0 1px rgba(255,255,255,.08)}
-    .venom-int-copy{min-width:0}.venom-int-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.venom-int-cat{font-size:10px;opacity:.42;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .venom-int-cta{margin-left:auto;font-size:9px;opacity:.42;white-space:nowrap}.venom-int-app:hover .venom-int-cta{opacity:.82}
-    .venom-int-foot{display:flex;align-items:center;gap:8px;margin-top:12px;padding:11px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.06);font-size:11px;opacity:.68}
-    .venom-int-eye{font-size:14px;line-height:1}.venom-int-foot strong{color:#fff;opacity:.95}
-    @media(max-width:760px){.venom-int-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.venom-int-panel{width:calc(100vw - 20px)}}
-    @media(max-width:470px){.venom-int-grid{grid-template-columns:1fr}.venom-int-panel{padding:14px}.venom-int-pill{display:none}}
-  `;
-  const style=document.createElement('style');style.id='venom-integrations-style';style.textContent=css;document.head.appendChild(style);
-
-  const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
-  let panel=null, hideTimer=null, activeTrigger=null;
-
-  function buildPanel(){
-    if(panel) return panel;
-    panel=document.createElement('div');panel.className='venom-integrations-panel';panel.setAttribute('role','menu');
-    panel.innerHTML=`<div class="venom-int-head"><div><div class="venom-int-kicker">Venom Connect</div><div class="venom-int-title">Connect your favorite apps</div><div class="venom-int-sub">Bring the tools you already use into Venom GPT — work, commerce, communication, files, creative tools and more.</div></div><div class="venom-int-pill">16 integrations</div></div><div class="venom-int-grid"></div><div class="venom-int-foot"><span class="venom-int-eye">◉</span><span><strong>One workspace. Many tools.</strong> Connect your stack and keep your workflows in one place.</span></div>`;
-    const grid=panel.querySelector('.venom-int-grid');
-    apps.forEach(([name,mark,cat,desc])=>{
-      const el=document.createElement('div');el.className='venom-int-app';el.setAttribute('role','menuitem');el.title=desc;
-      el.innerHTML=`<div class="venom-int-icon">${mark}</div><div class="venom-int-copy"><div class="venom-int-name">${name}</div><div class="venom-int-cat">${cat}</div></div><span class="venom-int-cta">Connect →</span>`;
-      el.addEventListener('click',()=>{
-        window.dispatchEvent(new CustomEvent('venom:integration-selected',{detail:{name,category:cat}}));
-        const msg=document.createElement('div');msg.textContent=`${name} selected — connector setup can be configured from Workspace.`;Object.assign(msg.style,{position:'fixed',zIndex:'2147483647',left:'50%',bottom:'28px',transform:'translateX(-50%)',padding:'11px 15px',border:'1px solid rgba(255,255,255,.12)',borderRadius:'999px',background:'rgba(12,12,16,.96)',color:'#fff',font:'12px system-ui',boxShadow:'0 12px 40px rgba(0,0,0,.45)'});document.body.appendChild(msg);setTimeout(()=>msg.remove(),2200);
-      });
-      grid.appendChild(el);
-    });
-    panel.addEventListener('mouseenter',()=>{clearTimeout(hideTimer)});
-    panel.addEventListener('mouseleave',scheduleHide);
-    document.body.appendChild(panel);return panel;
-  }
-  function scheduleHide(){clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(panel)panel.classList.remove('is-open')},140)}
-  function position(trigger){
-    const p=buildPanel();const r=trigger.getBoundingClientRect();
-    const w=Math.min(760,window.innerWidth-28);let left=Math.max(14,Math.min(r.left,w===window.innerWidth-28?14:window.innerWidth-w-14));
-    if(r.left+w>window.innerWidth-14) left=Math.max(14,window.innerWidth-w-14);
-    p.style.left=left+'px';p.style.top=Math.min(window.innerHeight-30,r.bottom+10)+'px';p.style.width=w+'px';
-    const pr=p.getBoundingClientRect();if(pr.bottom>window.innerHeight-14)p.style.top=Math.max(14,r.top-pr.height-10)+'px';
-  }
-  function open(trigger){clearTimeout(hideTimer);activeTrigger=trigger;position(trigger);buildPanel().classList.add('is-open')}
-  function wire(){
-    const candidates=[...document.querySelectorAll('a,button,[role="button"],div,span')].filter(el=>norm(el.textContent)==='features' || norm(el.getAttribute('aria-label'))==='features');
-    candidates.slice(-6).forEach(trigger=>{
-      if(trigger.dataset.venomIntegrationsWired==='1')return;
-      trigger.dataset.venomIntegrationsWired='1';
-      trigger.addEventListener('mouseenter',()=>open(trigger));
-      trigger.addEventListener('focus',()=>open(trigger));
-      trigger.addEventListener('mouseleave',scheduleHide);
-      trigger.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(panel?.classList.contains('is-open'))scheduleHide();else open(trigger)});
-    });
-  }
-  wire();
-  new MutationObserver(()=>wire()).observe(document.documentElement,{childList:true,subtree:true});
-  window.addEventListener('resize',()=>{if(activeTrigger&&panel?.classList.contains('is-open'))position(activeTrigger)});
-  window.addEventListener('scroll',()=>{if(activeTrigger&&panel?.classList.contains('is-open'))position(activeTrigger)},true);
+'use strict';
+if(window.__VENOM_INTEGRATIONS_DROPDOWN_V2__)return;window.__VENOM_INTEGRATIONS_DROPDOWN_V2__=true;
+const apps=[
+ ['🕷️','Spider Tracker','Spider-Tech','Cinematic tactical map, signal console and sightings dashboard.','Core'],
+ ['🎵','Spotify','Media','Music, playlists and media workflows.','Media'],
+ ['🛍️','Shopify','Commerce','Stores, products, orders and commerce workflows.','Business'],
+ ['💼','Salesforce','CRM','Accounts, contacts, opportunities and pipeline context.','CRM'],
+ ['🎫','Zendesk','Support','Tickets, customer context and support workflows.','Support'],
+ ['🔗','LinkedIn','Work','Professional research, recruiting and outreach workflows.','Work'],
+ ['✍️','DocuSign','Documents','Prepare, review and route documents for signing.','Documents'],
+ ['🎨','Adobe Photoshop','Creative','Creative workflows, image projects and design context.','Creative'],
+ ['📄','Adobe Acrobat','Documents','PDFs, document review and extraction workflows.','Documents'],
+ ['🎨','Canva','Creative','Create, review and move designs through your workflow.','Creative'],
+ ['🖌️','Figma','Creative','Design files, prototypes and product context.','Creative'],
+ ['📁','Google Drive','Storage','Search, summarize and work with Drive files.','Storage'],
+ ['✉️','Gmail','Communication','Turn email threads into searchable work.','Communication'],
+ ['📅','Google Calendar','Productivity','Meetings, schedules and follow-up context.','Productivity'],
+ ['💬','Slack','Teamwork','Channels, conversations and team context.','Teamwork'],
+ ['📝','Notion','Knowledge','Notes, wikis, projects and internal knowledge.','Knowledge'],
+ ['🪟','Microsoft 365','Productivity','Office files, calendars and business workflows.','Productivity'],
+ ['☁️','OneDrive','Storage','Cloud files and document workflows.','Storage'],
+ ['🐙','GitHub','Engineering','Repositories, issues, pull requests and code context.','Engineering'],
+ ['🎯','Jira','Engineering','Tickets, projects and delivery workflows.','Engineering'],
+ ['🎥','Zoom','Communication','Meetings, transcripts and follow-up workflows.','Communication'],
+ ['📊','HubSpot','CRM','Contacts, deals, marketing and sales context.','CRM'],
+ ['📋','Trello','Productivity','Boards, cards and lightweight project workflows.','Productivity'],
+ ['📦','Dropbox','Storage','Files, folders and document workflows.','Storage']
+];
+const css=`
+.v2-int-panel{position:fixed;z-index:2147483000;width:min(900px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 90px));overflow:auto;display:none;padding:18px;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:linear-gradient(145deg,rgba(20,20,25,.985),rgba(5,6,9,.99));box-shadow:0 30px 100px #000b,0 0 55px #fff0;backdrop-filter:blur(28px);color:#fff;font-family:inherit}.v2-int-panel.open{display:block;animation:v2in .18s ease-out}@keyframes v2in{from{opacity:0;transform:translateY(-7px) scale(.985)}to{opacity:1;transform:none}}
+.v2-int-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:3px 4px 16px}.v2-kicker{font:900 10px ui-monospace,monospace;letter-spacing:2px;color:#6ce2da;text-transform:uppercase}.v2-title{font-size:23px;font-weight:900;letter-spacing:-.6px;margin-top:4px}.v2-sub{font-size:12px;line-height:1.5;color:#8c9593;max-width:650px;margin-top:5px}.v2-count{border:1px solid #fff1;border-radius:999px;padding:7px 10px;font-size:10px;color:#aeb8b5;background:#fff1;white-space:nowrap}.v2-hero{display:grid;grid-template-columns:1.4fr .8fr;gap:10px;margin-bottom:13px}.v2-spider{position:relative;overflow:hidden;padding:16px;border-radius:17px;border:1px solid #5de1d333;background:linear-gradient(110deg,#102522,#0b1112 65%)}.v2-spider:after{content:'SPIDER-TECH';position:absolute;right:-8px;top:9px;font:900 36px ui-monospace,monospace;color:#fff05;letter-spacing:2px;transform:rotate(-8deg)}.v2-spider b{font-size:14px}.v2-spider p{margin:5px 0 0;max-width:520px;color:#8ea19e;font-size:11px;line-height:1.5}.v2-cta{margin-top:10px;display:inline-flex;padding:7px 10px;border-radius:9px;background:#52d7d0;color:#07100f;font-size:10px;font-weight:900}.v2-stat{padding:14px;border-radius:17px;border:1px solid #fff1;background:#fff2}.v2-stat small{display:block;color:#737f7c;font:800 9px ui-monospace,monospace;letter-spacing:1px}.v2-stat strong{display:block;margin-top:7px;font-size:19px}.v2-stat span{display:block;color:#6de0d7;font-size:10px;margin-top:3px}.v2-search{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid #fff1;border-radius:12px;background:#fff1;margin-bottom:9px}.v2-search input{border:0;outline:0;background:transparent;color:#fff;flex:1;font:500 12px system-ui}.v2-filters{display:flex;gap:6px;overflow:auto;padding-bottom:7px}.v2-filters button{border:1px solid #fff1;background:#fff1;color:#8c9693;border-radius:999px;padding:6px 9px;font:800 9px system-ui;cursor:pointer;white-space:nowrap}.v2-filters button.active{background:#62dcd5;color:#07100f;border-color:#62dcd5}.v2-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.v2-app{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border-radius:15px;border:1px solid #fff0;background:#fff1;transition:.15s;cursor:pointer}.v2-app:hover{transform:translateY(-2px);border-color:#fff2;background:#fff2;box-shadow:0 10px 25px #0005}.v2-app.hide{display:none}.v2-appico{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(145deg,#292b31,#111216);border:1px solid #fff1;font-size:17px;flex:none}.v2-app b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v2-app small{display:block;color:#6f7a77;font-size:9px;margin-top:2px}.v2-connect{margin-left:auto;color:#697571;font:900 8px ui-monospace,monospace;white-space:nowrap}.v2-app:hover .v2-connect{color:#69ddd6}.v2-foot{margin-top:12px;padding:11px 12px;border-radius:13px;border:1px solid #fff1;background:linear-gradient(90deg,#fff2,#fff0);font-size:10px;color:#7d8885}.v2-foot strong{color:#e6eeec}.v2-no{display:none!important}@media(max-width:760px){.v2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v2-hero{grid-template-columns:1fr}.v2-int-panel{width:calc(100vw - 20px)}}@media(max-width:470px){.v2-grid{grid-template-columns:1fr}.v2-int-panel{padding:13px}.v2-count{display:none}}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+let panel=null,timer=null,trigger=null;
+const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+function build(){if(panel)return panel;panel=document.createElement('div');panel.className='v2-int-panel';panel.innerHTML=`<div class="v2-int-top"><div><div class="v2-kicker">VENOM CONNECT · APP ECOSYSTEM</div><div class="v2-title">Your tools. Your data. One workspace.</div><div class="v2-sub">Connect the services your work already runs on — CRM, support, commerce, creative, engineering, documents and media — then use Venom as the command layer.</div></div><div class="v2-count">24 CONNECTORS</div></div><div class="v2-hero"><div class="v2-spider"><b>🕷️ Spider-Tech is the signature feature</b><p>Open the cinematic tactical tracker, explore the signal map, review fictional demo sightings and use the command console as a dedicated Venom experience.</p><span class="v2-cta">OPEN SPIDER-TECH →</span></div><div class="v2-stat"><small>CONNECTED WORKFLOWS</small><strong>CRM · SUPPORT · CREATIVE</strong><span>Built to grow with your stack</span></div></div><div class="v2-search"><span>⌕</span><input placeholder="Search apps, CRM, support, files…" aria-label="Search integrations"></div><div class="v2-filters"></div><div class="v2-grid"></div><div class="v2-foot"><strong>Connectable ≠ connected yet.</strong> Each app card is a product integration surface; actual access is enabled only after the relevant OAuth/API connector is configured.</div>`;
+const filters=panel.querySelector('.v2-filters');['All','Core','CRM','Support','Business','Work','Documents','Creative','Productivity','Storage','Engineering','Media','Communication','Teamwork'].forEach((x,i)=>{const b=document.createElement('button');b.textContent=x;b.className=i?'':'active';b.dataset.cat=x;filters.appendChild(b)});
+const grid=panel.querySelector('.v2-grid');apps.forEach(a=>{const [icon,name,cat,desc,group]=a;const el=document.createElement('div');el.className='v2-app';el.dataset.cat=group;el.dataset.search=(name+' '+cat+' '+desc).toLowerCase();el.title=desc;el.innerHTML=`<span class="v2-appico">${icon}</span><span style="min-width:0"><b>${name}</b><small>${cat}</small></span><span class="v2-connect">CONNECT →</span>`;el.onclick=()=>{if(name==='Spider Tracker'){window.dispatchEvent(new CustomEvent('venom:open-tracker'));document.querySelector('#tracker,[data-spider-tracker],.spider-tracker')?.scrollIntoView({behavior:'smooth'})}else window.dispatchEvent(new CustomEvent('venom:integration-selected',{detail:{name,category:cat,description:desc}}));};grid.appendChild(el)});
+function filter(){const q=panel.querySelector('input').value.toLowerCase();const c=filters.querySelector('.active')?.dataset.cat||'All';grid.querySelectorAll('.v2-app').forEach(e=>e.classList.toggle('hide',!(!q||e.dataset.search.includes(q))||(c!=='All'&&e.dataset.cat!==c)))}
+panel.querySelector('input').oninput=filter;filters.onclick=e=>{const b=e.target.closest('button');if(!b)return;filters.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter()};document.body.appendChild(panel);return panel}
+function hide(){clearTimeout(timer);timer=setTimeout(()=>panel?.classList.remove('open'),160)}function position(){const p=build(),r=trigger.getBoundingClientRect(),w=Math.min(900,innerWidth-28);p.style.width=w+'px';p.style.left=Math.max(14,Math.min(r.left,innerWidth-w-14))+'px';p.style.top=Math.min(innerHeight-20,r.bottom+9)+'px';const pr=p.getBoundingClientRect();if(pr.bottom>innerHeight-12)p.style.top=Math.max(12,r.top-pr.height-9)+'px'}
+function open(t){trigger=t;clearTimeout(timer);position();panel.classList.add('open')}
+function wire(){document.querySelectorAll('a,button,[role="button"]').forEach(el=>{if(norm(el.textContent)!=='features'||el.dataset.v2int)return;el.dataset.v2int='1';el.addEventListener('mouseenter',()=>open(el));el.addEventListener('mouseleave',hide);el.addEventListener('focus',()=>open(el));el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();panel?.classList.contains('open')?hide():open(el)})})}
+wire();new MutationObserver(wire).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('resize',()=>trigger&&panel?.classList.contains('open')&&position());window.addEventListener('scroll',()=>trigger&&panel?.classList.contains('open')&&position(),true);
 })();
