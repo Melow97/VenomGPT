@@ -1,66 +1,46 @@
-/* Reference-matched Spider-Tech home map + post-OAuth workspace handoff. */
+/* Spider-Tech visual bridge: keeps the strong home-map aesthetic on the live signed-in tracker too. */
 (function(){
-const css=document.createElement('style');css.textContent=`
-.vRetroPreview{position:relative}.vRetroPreviewHead b{color:#2be1dc}.vRetroPreviewMap{overflow:hidden;background:#071329 url('/assets/spider-retro-map.svg') center/cover;position:relative}.vHomeMapCanvas{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .35s ease}.vHomeSignal{position:absolute;width:24px;height:24px;border-radius:50%;background:#ff4d32;border:3px solid #ffd1a1;box-shadow:0 0 0 9px #ff4d3228,0 0 28px #ff4d32;transition:left 1.1s ease,top 1.1s ease;z-index:5}.vHomeSignal:before,.vHomeSignal:after{content:"";position:absolute;inset:-15px;border:2px solid #ff4d32;border-radius:50%;animation:vHomePulse 1.7s infinite}.vHomeSignal:after{inset:-30px;animation-delay:.55s;opacity:.3}.vHomeMapHud{position:absolute;left:12px;top:12px;z-index:7;background:#07111ae8;border:1px solid #466b75;border-radius:8px;padding:9px 11px;color:#c8d7d8;font:9px/1.6 monospace}.vHomeMapHud b{color:#ff7058}.vHomeMapLegend{position:absolute;right:12px;top:12px;z-index:7;background:#07111ae8;border:1px solid #466b75;border-radius:8px;padding:8px 10px;color:#b9c8ca;font:9px/1.6 monospace}.vHomeMapZoom{position:absolute;right:12px;top:76px;z-index:8;display:flex;flex-direction:column;gap:4px}.vHomeMapZoom button{width:31px;height:31px;border:1px solid #477080;background:#071329e8;color:#eadfca;border-radius:6px;font-size:17px;font-weight:900;cursor:pointer}.vHomeMapZoom button:hover{border-color:#2be1dc;color:#2be1dc}.vHomeMapMetrics{position:absolute;left:0;right:0;bottom:0;height:43px;display:grid;grid-template-columns:1.8fr .7fr .8fr .8fr .7fr;background:#071014ed;border-top:1px solid #36565d;z-index:8}.vHomeMetric{padding:5px 8px;border-right:1px solid #36565d;color:#84999c;font:8px monospace}.vHomeMetric strong{display:block;color:#f0eadb;font-size:10px;margin-top:2px}.vHomeBars{display:flex;gap:2px;margin-top:3px}.vHomeBars i{height:6px;width:4px;background:#2be1dc}.vHomeBars i:nth-last-child(-n+3){opacity:.3}@keyframes vHomePulse{0%{transform:scale(.55);opacity:.9}80%,100%{transform:scale(1.35);opacity:0}}
-`;
-document.head.appendChild(css);
-const route=[{x:58,y:48,lat:'40.7549',lon:'-73.9840',name:'MIDTOWN'},{x:54,y:43,lat:'40.7580',lon:'-73.9855',name:'TIMES SQUARE'},{x:57,y:57,lat:'40.7265',lon:'-73.9815',name:'EAST VILLAGE'},{x:73,y:36,lat:'40.7282',lon:'-73.7949',name:'QUEENS'},{x:67,y:72,lat:'40.6782',lon:'-73.9442',name:'BROOKLYN'}];let i=0,zoom=1,timer=null;
-function enhance(){const map=document.querySelector('.vRetroPreviewMap');if(!map||map.dataset.enhanced)return;map.dataset.enhanced='1';map.innerHTML=`<div class="vHomeMapCanvas"><div class="vHomeSignal" id="v-home-signal" style="left:${route[0].x}%;top:${route[0].y}%"></div></div><div class="vHomeMapHud">SIGNAL <b>LIVE</b><br>CONFIDENCE <b>94%</b><br>MODE <b>COMMUNITY</b></div><div class="vHomeMapLegend">● ACTIVE SIGNAL<br>◆ ROUTE TRACE<br>○ NODE</div><div class="vHomeMapZoom"><button id="v-home-plus">+</button><button id="v-home-minus">−</button><button onclick="openTracker()">⌾</button></div><div class="vHomeMapMetrics"><div class="vHomeMetric">SIGNAL STRENGTH<div class="vHomeBars">${Array.from({length:16},(_,n)=>`<i style="opacity:${n<13?1:.3}"></i>`).join('')}</div></div><div class="vHomeMetric">ZOOM<strong id="v-home-zoom">1.0x</strong></div><div class="vHomeMetric">LAT<strong id="v-home-lat">${route[0].lat}</strong></div><div class="vHomeMetric">LON<strong id="v-home-lon">${route[0].lon}</strong></div><div class="vHomeMetric">VIEW<strong>CITY⌄</strong></div></div>`;document.getElementById('v-home-plus').onclick=()=>setZoom(.2);document.getElementById('v-home-minus').onclick=()=>setZoom(-.2);clearInterval(timer);timer=setInterval(move,3000)}
-function setZoom(d){zoom=Math.max(.8,Math.min(2,zoom+d));const c=document.querySelector('.vHomeMapCanvas');if(c)c.style.transform='scale('+zoom+')';const z=document.getElementById('v-home-zoom');if(z)z.textContent=zoom.toFixed(1)+'x'}
-function move(){i=(i+1)%route.length;const p=route[i],s=document.getElementById('v-home-signal');if(!s)return;s.style.left=p.x+'%';s.style.top=p.y+'%';const lat=document.getElementById('v-home-lat'),lon=document.getElementById('v-home-lon');if(lat)lat.textContent=p.lat;if(lon)lon.textContent=p.lon}
-const observer=new MutationObserver(enhance);observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('load',enhance);setTimeout(enhance,300);setTimeout(enhance,1200);
+  const style=document.createElement('style');
+  style.textContent=`
+  .vt-city-layer{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.94}
+  .vt-city-block{position:absolute;background:linear-gradient(145deg,#152e3b,#0b1d27);border:1px solid #2c6070;box-shadow:inset 0 0 0 1px #0a151d,0 0 9px #1bcbd418}
+  .vt-city-block:after{content:"";position:absolute;inset:4px;background:repeating-linear-gradient(90deg,#62dfe708 0 3px,transparent 3px 8px),repeating-linear-gradient(0deg,#62dfe706 0 3px,transparent 3px 9px)}
+  .vt-city-tower{position:absolute;background:linear-gradient(90deg,#09151d,#2c5260,#0a1820);border:1px solid #4d8792;box-shadow:0 0 15px #2be1dc18}
+  .vt-city-tower:after{content:"";position:absolute;left:20%;right:20%;top:7%;height:3px;background:#73e9e4;box-shadow:0 10px #73e9e433,0 20px #73e9e422,0 30px #73e9e411}
+  .vt-city-landmark{position:absolute;border:2px solid #e7bd68;background:linear-gradient(90deg,#211a10,#6d4d20,#211a10);box-shadow:0 0 20px #e7bd6826}
+  .vt-city-landmark:before{content:"";position:absolute;left:38%;width:24%;height:70%;top:-70%;border-left:2px solid #e7bd68;border-right:2px solid #e7bd68}
+  .vt-city-road{position:absolute;height:2px;background:#35cbd12e;box-shadow:0 0 5px #35cbd118;transform-origin:left center}
+  .vt-city-road.major{height:4px;background:#5ce2e04c}
+  .vt-city-label{position:absolute;color:#68dfe0aa;font:700 8px monospace;letter-spacing:1px;text-shadow:0 0 6px #2be1dc55}
+  .vt-city-river{position:absolute;background:linear-gradient(90deg,#071a2b,#0b3550,#071a2b);border-left:1px solid #2b6b85;border-right:1px solid #2b6b85;opacity:.9}
+  .vt-city-node{position:absolute;width:8px;height:8px;border-radius:50%;background:#2be1dc;border:2px solid #c8ffff;box-shadow:0 0 13px #2be1dc;z-index:4}
+  .vt-controls .danger{display:none!important}
+  .vt-controls{grid-template-columns:1fr 1fr!important}
+  .vt-controls button:first-child{grid-column:1/-1}
+  `;
+  document.head.appendChild(style);
 
-/* FINAL AUTH HANDOFF: runs after the main app and opens the AI workspace after OAuth. */
-const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
-const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
-let authClient=null;
-function getAuthClient(){
-  if(authClient)return authClient;
-  if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Supabase browser client did not load');
-  authClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  return authClient;
-}
-function showWorkspace(session){
-  if(!session||!session.user)return;
-  window.userInfo={...(window.userInfo||{}),id:session.user.id,email:session.user.email||''};
-  const landing=document.getElementById('landing'),auth=document.getElementById('auth'),app=document.getElementById('app');
-  if(landing)landing.style.display='none';
-  if(auth)auth.style.display='none';
-  if(app)app.style.display='block';
-  const acct=document.getElementById('acct');if(acct)acct.textContent=session.user.email||'Workspace';
-  const go=()=>{if(typeof window.home==='function'){try{window.home()}catch(e){console.error('Venom workspace render failed',e)}}};
-  requestAnimationFrame(go);setTimeout(go,80);setTimeout(go,350);
-}
-async function finishAuth(){
-  try{
-    const c=getAuthClient();
-    const {data,error}=await c.auth.getSession();
-    if(error)throw error;
-    if(data&&data.session){showWorkspace(data.session);return true}
-    return false;
-  }catch(e){console.error('Venom auth handoff:',e);const err=document.getElementById('err');if(err)err.textContent='AUTHENTICATED, BUT WORKSPACE COULD NOT OPEN · '+(e.message||e);return false}
-}
-window.login=async function(){
-  const button=document.getElementById('google'),err=document.getElementById('err');
-  if(button){button.disabled=true;button.textContent='CONNECTING TO GOOGLE…'}if(err)err.textContent='';
-  try{
-    const c=getAuthClient();
-    const redirectTo=window.location.origin+'/';
-    const {data,error}=await c.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});
-    if(error)throw error;
-    if(data&&data.url)window.location.assign(data.url);
-  }catch(e){console.error('Venom Google login:',e);if(err)err.textContent='GOOGLE SIGN-IN ERROR · '+(e.message||e);if(button){button.disabled=false;button.textContent='G  Continue with Google'}}
-};
-function installAuthListener(){
-  try{
-    const c=getAuthClient();
-    c.auth.onAuthStateChange((event,session)=>{
-      if(session&&(event==='INITIAL_SESSION'||event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED'))showWorkspace(session);
-      if(event==='SIGNED_OUT'){const app=document.getElementById('app'),auth=document.getElementById('auth'),landing=document.getElementById('landing');if(app)app.style.display='none';if(auth)auth.style.display='block';if(landing)landing.style.display='none'}
-    });
-    finishAuth();
-  }catch(e){console.error('Venom auth listener:',e)}
-}
-window.addEventListener('load',()=>setTimeout(installAuthListener,0));
-setTimeout(installAuthListener,500);
+  function cityLayer(mapCanvas){
+    if(!mapCanvas || mapCanvas.querySelector('.vt-city-layer')) return;
+    const layer=document.createElement('div');layer.className='vt-city-layer';
+    const blocks=[[6,18,10,9],[18,12,8,12],[29,19,12,8],[45,12,9,12],[57,20,10,8],[70,12,8,13],[81,22,11,9],[9,35,8,11],[20,31,12,9],[35,34,9,13],[47,30,8,9],[61,35,12,10],[76,32,8,13],[87,38,7,8],[7,52,12,9],[23,49,9,12],[34,53,12,8],[49,49,9,13],[64,51,10,8],[79,50,12,12],[88,61,7,9],[8,68,10,12],[22,65,11,9],[38,68,8,13],[51,64,12,9],[67,66,9,12],[80,70,12,8],[29,82,12,7],[57,82,11,7]];
+    blocks.forEach(([x,y,w,h])=>{const b=document.createElement('i');b.className='vt-city-block';Object.assign(b.style,{left:x+'%',top:y+'%',width:w+'%',height:h+'%'});layer.appendChild(b)});
+    [[52,28,2.5,15],[55,24,3,19],[60,31,2.2,12],[73,24,2.5,17],[41,40,2.5,13],[66,44,3,16]].forEach(([x,y,w,h])=>{const b=document.createElement('i');b.className='vt-city-tower';Object.assign(b.style,{left:x+'%',top:y+'%',width:w+'%',height:h+'%'});layer.appendChild(b)});
+    const empire=document.createElement('i');empire.className='vt-city-landmark';Object.assign(empire.style,{left:'54%',top:'37%',width:'4%',height:'10%'});layer.appendChild(empire);
+    const river=document.createElement('i');river.className='vt-city-river';Object.assign(river.style,{right:'4%',top:'3%',width:'10%',height:'94%',transform:'rotate(3deg)'});layer.appendChild(river);
+    [[2,28,96,0,'major'],[2,46,94,0,'major'],[4,63,91,0,''],[8,79,85,0,''],[19,5,0,88,''],[36,5,0,91,'major'],[54,4,0,92,'major'],[72,5,0,90,''],[86,7,0,87,'major'],[4,21,84,28,''],[15,80,73,-34,''],[31,10,57,75,'']].forEach(([x,y,w,h,kind])=>{const r=document.createElement('i');r.className='vt-city-road '+kind;Object.assign(r.style,{left:x+'%',top:y+'%',width:(w||2)+'%',height:(h||2)+'%',transform:h?'rotate('+Math.atan2(h,w)*180/Math.PI+'deg)':'none'});layer.appendChild(r)});
+    [['MIDTOWN',48,39],['TIMES SQ',51,45],['CENTRAL PARK',28,23],['BROOKLYN',62,75],['QUEENS',78,31],['LOWER MANHATTAN',38,72],['HARLEM',35,29],['HUDSON',7,54]].forEach(([t,x,y])=>{const l=document.createElement('span');l.className='vt-city-label';l.textContent=t;Object.assign(l.style,{left:x+'%',top:y+'%'});layer.appendChild(l)});
+    [[47,43],[57,35],[68,57],[76,30],[33,68],[23,48],[82,70]].forEach(([x,y])=>{const n=document.createElement('i');n.className='vt-city-node';Object.assign(n.style,{left:x+'%',top:y+'%'});layer.appendChild(n)});
+    mapCanvas.appendChild(layer);
+  }
+  function patchLiveTracker(){
+    const map=document.querySelector('#vt-map .vt-map-canvas');
+    if(map) cityLayer(map);
+    const controls=document.querySelector('#vt-map')?.parentElement?.querySelector('.vt-controls');
+    if(controls) controls.querySelectorAll('button').forEach(btn=>{if((btn.textContent||'').trim().toUpperCase()==='PAUSE')btn.remove()});
+  }
+  const observer=new MutationObserver(patchLiveTracker);
+  observer.observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('load',patchLiveTracker);
+  setTimeout(patchLiveTracker,300);setTimeout(patchLiveTracker,1000);setTimeout(patchLiveTracker,2500);
 })();
