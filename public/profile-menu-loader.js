@@ -1,0 +1,1 @@
+(()=>{const s=document.createElement('script');s.src='/profile-menu-polish.js?v=20260815-32';s.defer=true;document.head.appendChild(s)})();
