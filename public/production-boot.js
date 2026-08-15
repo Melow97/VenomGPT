@@ -1,6 +1,6 @@
 /* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-13';
+  const VERSION='20260815-31';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   const AI_AFTER_AUTH='venom-open-ai';
@@ -9,10 +9,7 @@
     return new Promise((resolve)=>{
       if(document.querySelector('script['+key+']')) return resolve();
       const s=document.createElement('script');
-      s.src=src;s.setAttribute(key,'1');
-      s.onload=()=>resolve();
-      s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()};
-      document.body.appendChild(s);
+      s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()};document.body.appendChild(s);
     });
   }
 
@@ -25,79 +22,51 @@
   }
 
   function showAuthError(message){
-    const e=document.getElementById('err'); if(e)e.textContent='AUTH ERROR · '+message;
-    const b=document.getElementById('google'); if(b){b.disabled=false;b.textContent='G  Continue with Google'}
+    const e=document.getElementById('err');if(e)e.textContent='AUTH ERROR · '+message;
+    const b=document.getElementById('google');if(b){b.disabled=false;b.textContent='G  Continue with Google'}
   }
 
   window.openAuth=function(){
     const landing=document.getElementById('landing'),auth=document.getElementById('auth'),app=document.getElementById('app');
-    if(landing)landing.style.display='none';
-    if(auth)auth.style.display='block';
-    if(app)app.style.display='none';
-    setTimeout(()=>{if(window.venomEmailSignupReady)window.venomEmailSignupReady=true;document.getElementById('google')?.focus()},30);
+    if(landing)landing.style.display='none';if(auth)auth.style.display='block';if(app)app.style.display='none';
+    setTimeout(()=>document.getElementById('venomEmail')?.focus(),40);
   };
 
   window.login=async function(){
-    const b=document.getElementById('google');
-    if(b){b.disabled=true;b.textContent='CONNECTING TO GOOGLE…'}
-    const e=document.getElementById('err');if(e)e.textContent='';
-    sessionStorage.setItem(AI_AFTER_AUTH,'1');
+    const b=document.getElementById('google');if(b){b.disabled=true;b.textContent='CONNECTING TO GOOGLE…'}
+    const e=document.getElementById('err');if(e)e.textContent='';sessionStorage.setItem(AI_AFTER_AUTH,'1');
     try{
-      const client=await getClient();
-      const redirectTo=window.location.origin+'/?auth=google';
+      const client=await getClient();const redirectTo=window.location.origin+'/?auth=google';
       const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account',access_type:'online'}}});
       if(error)throw error;
-    }catch(err){
-      sessionStorage.removeItem(AI_AFTER_AUTH);
-      console.error('[VENOM GOOGLE AUTH]',err);
-      showAuthError(err?.message||String(err));
-    }
+    }catch(err){sessionStorage.removeItem(AI_AFTER_AUTH);console.error('[VENOM GOOGLE AUTH]',err);showAuthError(err?.message||String(err))}
   };
 
   async function forceWorkspace(){
     const landing=document.getElementById('landing'),auth=document.getElementById('auth'),app=document.getElementById('app');
-    if(landing)landing.style.display='none';
-    if(auth)auth.style.display='none';
-    if(app)app.style.display='block';
-    if(typeof window.home==='function') window.home();
-    if(typeof window.newChat==='function'){
-      let tries=0;
-      const open=()=>{try{window.newChat();return true}catch(_){return false}};
-      if(!open()){
-        const timer=setInterval(()=>{if(open()||++tries>40)clearInterval(timer)},100);
-      }
-    }
+    if(landing)landing.style.display='none';if(auth)auth.style.display='none';if(app)app.style.display='block';
+    if(typeof window.home==='function')window.home();
+    if(typeof window.venomOpenChat==='function'){try{window.venomOpenChat();return}catch(e){console.error('[VENOM AI ENTRY]',e)}}
+    if(typeof window.newChat==='function'){let tries=0;const open=()=>{try{window.newChat();return true}catch(_){return false}};if(!open()){const timer=setInterval(()=>{if(open()||++tries>40)clearInterval(timer)},100)}}
   }
 
   async function finishAuth(){
     try{
-      const client=await getClient();
-      const {data:{session},error}=await client.auth.getSession();
-      if(error)throw error;
+      const client=await getClient();const {data:{session},error}=await client.auth.getSession();if(error)throw error;
       const callbackReturn=new URLSearchParams(location.search).get('auth');
-      if(session && typeof window.applySession==='function') await window.applySession(session);
-      if(session && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || callbackReturn==='google' || callbackReturn==='email')){
-        sessionStorage.removeItem(AI_AFTER_AUTH);
-        await forceWorkspace();
-        history.replaceState({},document.title,location.pathname+location.hash);
+      if(session&&typeof window.applySession==='function')await window.applySession(session);
+      if(session&&(sessionStorage.getItem(AI_AFTER_AUTH)==='1'||callbackReturn==='google'||callbackReturn==='email'||callbackReturn==='reset')){
+        sessionStorage.removeItem(AI_AFTER_AUTH);await forceWorkspace();history.replaceState({},document.title,location.pathname+location.hash);
       }
       client.auth.onAuthStateChange(async(_event,next)=>{
-        if(next && typeof window.applySession==='function') await window.applySession(next);
-        if(next && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || location.search.includes('auth=google') || location.search.includes('auth=email'))){
-          sessionStorage.removeItem(AI_AFTER_AUTH);
-          setTimeout(()=>forceWorkspace(),120);
-        }
+        if(next&&typeof window.applySession==='function')await window.applySession(next);
+        if(next&&(sessionStorage.getItem(AI_AFTER_AUTH)==='1'||location.search.includes('auth=google')||location.search.includes('auth=email'))){sessionStorage.removeItem(AI_AFTER_AUTH);setTimeout(()=>forceWorkspace(),120)}
       });
     }catch(err){console.error('[VENOM AUTH BOOT]',err)}
   }
 
   function makeInteractive(){
-    document.querySelectorAll('a,button').forEach(el=>{
-      if(el.dataset.venomInteraction)return;
-      el.dataset.venomInteraction='1';
-      el.addEventListener('pointerdown',()=>el.classList.add('venom-pressed'),{passive:true});
-      ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>el.classList.remove('venom-pressed'),{passive:true}));
-    });
+    document.querySelectorAll('a,button').forEach(el=>{if(el.dataset.venomInteraction)return;el.dataset.venomInteraction='1';el.addEventListener('pointerdown',()=>el.classList.add('venom-pressed'),{passive:true});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>el.classList.remove('venom-pressed'),{passive:true}))});
   }
 
   async function boot(){
@@ -105,8 +74,8 @@
     await ensureScript('/social-footer.js?v='+VERSION,'data-venom-social-footer');
     await ensureScript('/home-map-enhance.js?v='+VERSION,'data-venom-home-final');
     await ensureScript('/auth-signup.js?v='+VERSION,'data-venom-auth-signup');
-    makeInteractive();
-    new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
+    await ensureScript('/ai-experience-v2.js?v='+VERSION,'data-venom-ai-v2');
+    makeInteractive();new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     await finishAuth();
     console.info('[VENOM] production boot '+VERSION+' ready');
   }
