@@ -1,6 +1,6 @@
-/* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
+/* VENOM GPT PRODUCTION BOOT — V5 deterministic loader */
 (function(){
-  const VERSION='20260815-51';
+  const VERSION='20260815-52';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   function ensureScript(src,key){return new Promise(resolve=>{if(document.querySelector('script['+key+']'))return resolve();const s=document.createElement('script');s.src=src;s.setAttribute(key,'1');s.onload=()=>resolve();s.onerror=()=>{console.error('[VENOM BOOT] failed:',src);resolve()}})}
@@ -23,13 +23,12 @@
     await ensureScript('/venom-ui-polish-v3.js?v='+VERSION,'data-venom-ui-polish-v3');
     await ensureScript('/venom-comic-home-v1.js?v='+VERSION,'data-venom-comic-home-v1');
     await ensureScript('/venom-ai-visuals-v1.js?v='+VERSION,'data-venom-ai-visuals-v1');
-    await ensureScript('/venom-composer-spider-v2.js?v='+VERSION,'data-venom-composer-spider-v2');
-    await ensureScript('/venom-composer-spider-v3.js?v='+VERSION,'data-venom-composer-spider-v3');
-    await ensureScript('/venom-final-ui-v4.js?v='+VERSION,'data-venom-final-ui-v4');
+    /* V5 replaces the older composer/tracker layers. Do not load v2/v3/v4 interaction patches. */
+    await ensureScript('/venom-ui-v5.js?v='+VERSION,'data-venom-ui-v5');
     makeInteractive();
     new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     try{await getClient()}catch(e){console.warn('[VENOM AUTH] client warmup failed',e)}
-    console.info('[VENOM] production boot '+VERSION+' ready; authoritative V4 composer + tracker loaded');
+    console.info('[VENOM] production boot '+VERSION+' ready; V5 cream workspace + minimal composer + live fictional tracker loaded');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
