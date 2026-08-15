@@ -42,7 +42,6 @@
       @media(max-width:900px){
         .venom-nav-panel{position:fixed;top:70px;left:16px;right:16px;width:auto;transform:translateY(8px);grid-template-columns:1fr}
         .venom-nav-dropdown:hover .venom-nav-panel,.venom-nav-dropdown:focus-within .venom-nav-panel{transform:translateY(0)}
-        .venom-nav-panel .nav-panel-title{grid-column:1}
       }
       @media(max-width:600px){.venom-x-link{display:none}.venom-eyes{margin-left:5px}.venom-eye{width:10px;height:6px}}
     `;
@@ -53,12 +52,7 @@
     const b=$('va-theme');
     if(!b||b.dataset.runtimeTheme)return;
     b.dataset.runtimeTheme='1';
-    const apply=()=>{
-      const dark=localStorage.getItem('venom-theme')==='dark';
-      document.body.classList.toggle('venom-dark',dark);
-      b.textContent=dark?'☀':'☾';
-      b.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');
-    };
+    const apply=()=>{const dark=localStorage.getItem('venom-theme')==='dark';document.body.classList.toggle('venom-dark',dark);b.textContent=dark?'☀':'☾';b.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode')};
     b.onclick=()=>{localStorage.setItem('venom-theme',document.body.classList.contains('venom-dark')?'light':'dark');apply()};
     apply();
   }
@@ -68,27 +62,16 @@
     if(!b||b.dataset.runtimeAuth)return;
     b.dataset.runtimeAuth='1';
     b.onclick=async()=>{
-      const err=$('va-err');
-      b.disabled=true;
-      b.textContent='CONNECTING TO GOOGLE…';
-      if(err)err.textContent='';
+      const err=$('va-err');b.disabled=true;b.textContent='CONNECTING TO GOOGLE…';if(err)err.textContent='';
       try{
         const c=getClient();
         if(!c)throw new Error('Authentication service did not load. Please refresh and try again.');
-        const {error}=await c.auth.signInWithOAuth({
-          provider:'google',
-          options:{
-            redirectTo:window.location.origin+'/',
-            queryParams:{prompt:'select_account'},
-            skipBrowserRedirect:false
-          }
-        });
+        const {error}=await c.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/',queryParams:{prompt:'select_account'},skipBrowserRedirect:false}});
         if(error)throw error;
       }catch(e){
         console.error('[VENOM AUTH]',e);
         if(err)err.textContent='GOOGLE SIGN-IN ERROR · '+(e?.message||String(e));
-        b.disabled=false;
-        b.textContent='G  Continue with Google';
+        b.disabled=false;b.textContent='G  Continue with Google';
       }
     };
   }
@@ -99,6 +82,7 @@
     const params=new URLSearchParams(window.location.search);
     const code=params.get('code');
     const oauthMarker=params.get('auth');
+    if(!code&&!oauthMarker)return;
     try{
       let data=(await c.auth.getSession()).data;
       if(!data?.session&&code){
@@ -107,10 +91,12 @@
         data=result.data;
       }
       if(data?.session){
-        if(typeof window.workspace==='function')window.workspace();
-        setTimeout(()=>{if(typeof window.navigate==='function')window.navigate('chat')},80);
-        if(code||oauthMarker)history.replaceState({},document.title,window.location.pathname);
+        console.info('[VENOM AUTH] Google session recovered; restarting authoritative boot');
+        history.replaceState({},document.title,window.location.pathname);
+        window.location.replace(window.location.pathname);
+        return;
       }
+      console.warn('[VENOM AUTH] OAuth return had no session');
     }catch(e){
       console.error('[VENOM AUTH CALLBACK]',e);
       const err=$('va-err');
@@ -118,52 +104,28 @@
     }
   }
 
-  function removeUglyPlus(){
-    const p=$('va-plus');
-    if(p){p.remove();const tools=$('va-tools');if(tools)tools.style.display='none'}
-  }
-
-  function repairSidebar(){
-    document.querySelectorAll('.va-sidebtn[data-view]').forEach(btn=>{
-      if(btn.dataset.runtimeNav)return;
-      btn.dataset.runtimeNav='1';
-      btn.addEventListener('click',()=>{if(typeof window.navigate==='function')window.navigate(btn.dataset.view,btn)});
-    });
-  }
+  function removeUglyPlus(){const p=$('va-plus');if(p){p.remove();const tools=$('va-tools');if(tools)tools.style.display='none'}}
+  function repairSidebar(){document.querySelectorAll('.va-sidebtn[data-view]').forEach(btn=>{if(btn.dataset.runtimeNav)return;btn.dataset.runtimeNav='1';btn.addEventListener('click',()=>{if(typeof window.navigate==='function')window.navigate(btn.dataset.view,btn)})})}
 
   function addEyes(el){
     if(!el||el.querySelector('.venom-eyes'))return;
     const t=Array.from(el.childNodes).find(n=>n.nodeType===3&&/venom/i.test(n.nodeValue||''));
     if(!t)return;
-    const eyes=document.createElement('span');
-    eyes.className='venom-eyes';
-    eyes.setAttribute('aria-hidden','true');
-    eyes.innerHTML='<i class="venom-eye"></i><i class="venom-eye"></i>';
-    el.appendChild(eyes);
+    const eyes=document.createElement('span');eyes.className='venom-eyes';eyes.setAttribute('aria-hidden','true');eyes.innerHTML='<i class="venom-eye"></i><i class="venom-eye"></i>';el.appendChild(eyes);
   }
-
-  function decorateVenom(){
-    document.querySelectorAll('.va-brand,.va-sidebrand,.va-hero h1,.va-view h1,.va-view h2,.va-kicker').forEach(el=>addEyes(el));
-  }
+  function decorateVenom(){document.querySelectorAll('.va-brand,.va-sidebrand,.va-hero h1,.va-view h1,.va-view h2,.va-kicker').forEach(el=>addEyes(el))}
 
   function makeDropdown(title,items){
-    const wrap=document.createElement('div');
-    wrap.className='venom-nav-dropdown';
+    const wrap=document.createElement('div');wrap.className='venom-nav-dropdown';
     wrap.innerHTML=`<button class="venom-nav-trigger" type="button" aria-haspopup="true" aria-expanded="false">${title}<span class="chev">⌄</span></button><div class="venom-nav-panel" role="menu"><div class="nav-panel-title">${title.toUpperCase()} · VENOM GPT</div>${items.map(x=>`<a class="venom-nav-item" href="${x.href}" role="menuitem"><span class="venom-nav-icon">${x.icon}</span><span><b>${x.name}</b><span>${x.desc}</span></span></a>`).join('')}</div>`;
-    const trigger=wrap.querySelector('.venom-nav-trigger');
-    trigger.addEventListener('click',()=>{
-      const open=wrap.classList.toggle('open');
-      trigger.setAttribute('aria-expanded',String(open));
-    });
+    const trigger=wrap.querySelector('.venom-nav-trigger');trigger.addEventListener('click',()=>{const open=wrap.classList.toggle('open');trigger.setAttribute('aria-expanded',String(open))});
     return wrap;
   }
 
   function repairLandingNav(){
-    const nav=document.querySelector('.va-nav');
-    const links=document.querySelector('.va-navlinks');
+    const nav=document.querySelector('.va-nav'),links=document.querySelector('.va-navlinks');
     if(!nav||!links||links.dataset.runtimeDropdowns)return;
     links.dataset.runtimeDropdowns='1';
-
     const feature=Array.from(links.querySelectorAll('a')).find(a=>a.textContent.trim().toLowerCase()==='features');
     const workspace=Array.from(links.querySelectorAll('a')).find(a=>a.textContent.trim().toLowerCase()==='workspace');
     if(feature)feature.replaceWith(makeDropdown('Features',[
@@ -184,46 +146,20 @@
       {icon:'⚡',name:'Connected Tools',desc:'Bring your favourite workflows into one shell.',href:'#workspace'},
       {icon:'✦',name:'Spider Tracker',desc:'Jump into the tactical map experience.',href:'#tracker'}
     ]));
-
     if(!nav.querySelector('.venom-x-link')){
       const actions=nav.querySelector(':scope > div:last-child');
-      if(actions){
-        const x=document.createElement('a');
-        x.className='venom-x-link';
-        x.href='https://x.com/SpideytrackerAI';
-        x.target='_blank';
-        x.rel='noopener noreferrer';
-        x.innerHTML='<span class="venom-x-icon">𝕏</span> Follow us';
-        actions.insertBefore(x,actions.firstChild);
-      }
+      if(actions){const x=document.createElement('a');x.className='venom-x-link';x.href='https://x.com/SpideytrackerAI';x.target='_blank';x.rel='noopener noreferrer';x.innerHTML='<span class="venom-x-icon">𝕏</span> Follow us';actions.insertBefore(x,actions.firstChild)}
     }
   }
 
   function addLandingFollow(){
     const section=document.querySelector('#tracker');
     if(!section||section.querySelector('.venom-footer-follow'))return;
-    const row=document.createElement('div');
-    row.className='venom-footer-follow';
-    row.innerHTML='<a class="venom-x-link" href="https://x.com/SpideytrackerAI" target="_blank" rel="noopener noreferrer"><span class="venom-x-icon">𝕏</span> Follow SpideyTracker AI on X</a>';
-    section.appendChild(row);
+    const row=document.createElement('div');row.className='venom-footer-follow';row.innerHTML='<a class="venom-x-link" href="https://x.com/SpideytrackerAI" target="_blank" rel="noopener noreferrer"><span class="venom-x-icon">𝕏</span> Follow SpideyTracker AI on X</a>';section.appendChild(row);
   }
 
-  function repair(){
-    addCSS();
-    fixTheme();
-    fixSignIn();
-    removeUglyPlus();
-    repairSidebar();
-    decorateVenom();
-    repairLandingNav();
-    addLandingFollow();
-  }
-
+  function repair(){addCSS();fixTheme();fixSignIn();removeUglyPlus();repairSidebar();decorateVenom();repairLandingNav();addLandingFollow()}
   const mo=new MutationObserver(repair);
-  function boot(){
-    repair();
-    hardenOAuthReturn();
-    if(document.body)mo.observe(document.body,{childList:true,subtree:true});
-  }
+  function boot(){repair();hardenOAuthReturn();if(document.body)mo.observe(document.body,{childList:true,subtree:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
