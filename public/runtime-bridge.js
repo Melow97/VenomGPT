@@ -1,10 +1,11 @@
 /* VENOM RUNTIME BRIDGE — resilient, non-blocking module loader */
 (function(){
-  const VERSION='20260815-26';
+  const VERSION='20260815-27';
   const modules=[
     ['/home-map-enhance.js','data-venom-runtime-home'],
     ['/home-finish.js','data-venom-home-finish'],
     ['/ai-workspace-polish.js','data-venom-ai-workspace'],
+    ['/ai-premium-ui-v2.js','data-venom-ai-premium-v2'],
     ['/payment-fix.js','data-venom-payment-fix'],
     ['/ai-shell-minimal.js','data-venom-ai-shell-minimal'],
     ['/ai-pro-finish.js','data-venom-ai-pro-finish'],
@@ -31,52 +32,23 @@
     });
   }
 
-  function removePause(){
-    document.querySelectorAll('button').forEach(b=>{
-      if(/^\s*PAUSE\s*$/i.test(b.textContent||''))b.remove();
-    });
-  }
-
+  function removePause(){document.querySelectorAll('button').forEach(b=>{if(/^\s*PAUSE\s*$/i.test(b.textContent||''))b.remove()})}
   function openAIAfterAuth(){
     if(sessionStorage.getItem('venom-open-ai')!=='1')return;
     const go=()=>{
-      if(typeof window.venomOpenChat==='function'){
-        sessionStorage.removeItem('venom-open-ai');
-        setTimeout(()=>window.venomOpenChat(),90);return true;
-      }
-      if(typeof window.newChat==='function'){
-        sessionStorage.removeItem('venom-open-ai');
-        setTimeout(()=>window.newChat(),90);return true;
-      }
+      if(typeof window.venomOpenChat==='function'){sessionStorage.removeItem('venom-open-ai');setTimeout(()=>window.venomOpenChat(),90);return true}
+      if(typeof window.newChat==='function'){sessionStorage.removeItem('venom-open-ai');setTimeout(()=>window.newChat(),90);return true}
       return false;
     };
-    if(!go()){
-      let n=0;const t=setInterval(()=>{if(go()||++n>60)clearInterval(t)},100);
-    }
+    if(!go()){let n=0;const t=setInterval(()=>{if(go()||++n>60)clearInterval(t)},100)}
   }
-
   async function boot(){
-    /* Never serialize optional UI modules: one slow/failing asset must not block the rest. */
     const results=await Promise.all(modules.map(([src,attr])=>load(src,attr)));
     const failed=results.filter(r=>!r.ok).map(r=>r.src);
     if(failed.length)console.warn('[VENOM RUNTIME] optional modules unavailable:',failed);
-
-    removePause();
-    new MutationObserver(removePause).observe(document.body,{childList:true,subtree:true});
-    try{
-      if(window.venomAuthClient){
-        const client=window.venomAuthClient();
-        if(client?.auth?.onAuthStateChange){
-          client.auth.onAuthStateChange((event,session)=>{
-            if(session&&(event==='SIGNED_IN'||sessionStorage.getItem('venom-open-ai')==='1'))openAIAfterAuth();
-          });
-        }
-      }
-    }catch(e){console.warn('[VENOM RUNTIME] auth handoff unavailable',e)}
-    openAIAfterAuth();
-    document.documentElement.classList.add('venom-runtime-ready');
+    removePause();new MutationObserver(removePause).observe(document.body,{childList:true,subtree:true});
+    try{if(window.venomAuthClient){const client=window.venomAuthClient();if(client?.auth?.onAuthStateChange){client.auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||sessionStorage.getItem('venom-open-ai')==='1'))openAIAfterAuth()})}}}catch(e){console.warn('[VENOM RUNTIME] auth handoff unavailable',e)}
+    openAIAfterAuth();document.documentElement.classList.add('venom-runtime-ready');
   }
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
-  else boot();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
