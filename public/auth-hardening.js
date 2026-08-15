@@ -14,10 +14,12 @@
     const button=document.getElementById('google'),err=document.getElementById('err');
     if(button){button.disabled=true;button.textContent='CONNECTING TO GOOGLE…'}
     if(err)err.textContent='';
+    sessionStorage.setItem('venom-open-ai','1');
     try{
       const {error}=await client().auth.signInWithOAuth({provider:'google',options:{redirectTo:origin+'/',queryParams:{prompt:'select_account'}}});
       if(error)throw error;
     }catch(e){
+      sessionStorage.removeItem('venom-open-ai');
       console.error('[VENOM AUTH]',e);
       if(err)err.textContent='GOOGLE SIGN-IN ERROR · '+(e?.message||String(e));
       if(button){button.disabled=false;button.textContent='G  Continue with Google'}
@@ -32,6 +34,10 @@
     try{
       const {data:{session}}=await client().auth.getSession();
       if(session && typeof window.applySession==='function')await window.applySession(session);
+      if(session && sessionStorage.getItem('venom-open-ai')==='1' && typeof window.newChat==='function'){
+        sessionStorage.removeItem('venom-open-ai');
+        setTimeout(()=>window.newChat(),120);
+      }
     }catch(e){console.warn('[VENOM AUTH SYNC]',e)}
   }
   client;
