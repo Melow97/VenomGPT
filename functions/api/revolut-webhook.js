@@ -25,6 +25,20 @@ function userIdFromReference(ref) {
   return m?.[1] || null;
 }
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;' }[c]));
+}
+
+async function sendReceipt(env, { to, name, reference, plan, amount, currency, date }) {
+  if (!env.RESEND_API_KEY || !to) return false;
+  const from = env.RESEND_FROM || 'Venom GPT <receipts@venomgpt.com>';
+  const subject = `Venom GPT Pro payment receipt · ${reference}`;
+  const billing = plan === 'annual' ? 'Annual' : 'Monthly';
+  const html = `<!doctype html><html><body style="margin:0;background:#080b0c;color:#eee7d8;font-family:Arial,sans-serif"><div style="max-width:620px;margin:0 auto;padding:36px 24px"><div style="font-size:24px;font-weight:900">VENOM <span style="color:#39c0b8">GPT</span></div><div style="margin-top:28px;padding:26px;border:1px solid #334445;border-radius:14px;background:#0b1315"><div style="font:11px monospace;color:#55d8d0">VENOMGPT PRO · PAYMENT CONFIRMED</div><h1 style="font-size:28px;margin:12px 0">Thanks for upgrading, ${escapeHtml(name || 'there')}.</h1><p style="font-size:14px;line-height:1.7;color:#9aa6a3">Your Pro payment was confirmed by the payment provider. Keep this email for your records.</p><div style="margin-top:18px;padding:14px;border:1px solid #263739;border-radius:9px;background:#091012"><p style="margin:7px 0;font-size:12px"><b>Receipt reference:</b> ${escapeHtml(reference)}</p><p style="margin:7px 0;font-size:12px"><b>Plan:</b> Venom GPT Pro</p><p style="margin:7px 0;font-size:12px"><b>Amount:</b> ${escapeHtml(currency)} ${(Number(amount || 0)/100).toFixed(2)}</p><p style="margin:7px 0;font-size:12px"><b>Billing:</b> ${billing}</p><p style="margin:7px 0;font-size:12px"><b>Date:</b> ${escapeHtml(date)}</p></div><a href="${escapeHtml(env.PUBLIC_APP_URL || 'https://venomgp.mel-m-ozturk.workers.dev/') }" style="display:inline-block;margin-top:18px;padding:12px 18px;border-radius:8px;background:#d95a36;color:#fff;text-decoration:none;font-weight:800">OPEN PRO WORKSPACE</a><p style="font-size:10px;line-height:1.6;color:#687572;margin-top:22px">This receipt is generated only after the payment provider confirms the transaction. Reference: ${escapeHtml(reference)}</p></div></div></body></html>`;
+  const r = await fetch('https://api.resend.com/emails', { method:'POST', headers:{ Authorization:`Bearer ${env.RESEND_API_KEY}`, 'content-type':'application/json' }, body:JSON.stringify({ from, to:[to], subject, html }) });
+  return r.ok;
+}
+
 export async function onRequestPost({ request, env }) {
   if (!env.REVOLUT_WEBHOOK_SECRET || !env.REVOLUT_SECRET_KEY || !env.SUPABASE_SERVICE_ROLE_KEY) return new Response('Webhook not configured', { status: 503 });
   const raw = await request.text();
@@ -50,6 +64,20 @@ export async function onRequestPost({ request, env }) {
   const validAmount = plan === 'annual' ? Number(order.amount) === 23000 : plan === 'pro' ? Number(order.amount) === 2000 : false;
   if (order.currency !== 'EUR' || !validAmount || !userId) return new Response('Order validation failed', { status: 400 });
 
-  await setBilling(env, userId, { plan: 'pro', billing_plan: plan, billing_status: 'active' });
+  const reference = `VENOM-${String(plan).toUpperCase()}-${orderId}`;
+  await setBilling(env, userId, { plan: 'pro', billing_plan: plan, billing_status: 'active', payment_reference: reference });
+
+  const email = order.metadata?.email || '';
+  if (email) {
+    await sendReceipt(env, {
+      to: email,
+      name: order.metadata?.full_name || email.split('@')[0],
+      reference,
+      plan,
+      amount: order.amount,
+      currency: order.currency,
+      date: new Date().toISOString()
+    }).catch(() => false);
+  }
   return new Response('OK');
 }
