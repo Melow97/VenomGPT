@@ -1,6 +1,6 @@
 /* VENOM RUNTIME BRIDGE — approved UI, auth handoff, responsive premium finish */
 (function(){
-  const VERSION='20260815-24';
+  const VERSION='20260815-25';
   function load(src,attr,next){
     if(document.querySelector('script['+attr+']')){next&&next();return}
     const s=document.createElement('script');s.src=src;s.setAttribute(attr,'1');s.onload=next||null;s.onerror=e=>console.error('[VENOM RUNTIME]',src,e);document.body.appendChild(s)
