@@ -1,6 +1,6 @@
 /* VENOM GPT PRODUCTION BOOT — deterministic loader/auth/click safety */
 (function(){
-  const VERSION='20260815-12';
+  const VERSION='20260815-13';
   const SUPABASE_URL='https://dqqqagpsaaalsztblmsc.supabase.co';
   const SUPABASE_KEY='sb_publishable_a5XQdHRe3daJPTfYnEMIRA_m-B5sksH';
   const AI_AFTER_AUTH='venom-open-ai';
@@ -25,7 +25,7 @@
   }
 
   function showAuthError(message){
-    const e=document.getElementById('err'); if(e)e.textContent='GOOGLE SIGN-IN ERROR · '+message;
+    const e=document.getElementById('err'); if(e)e.textContent='AUTH ERROR · '+message;
     const b=document.getElementById('google'); if(b){b.disabled=false;b.textContent='G  Continue with Google'}
   }
 
@@ -34,7 +34,7 @@
     if(landing)landing.style.display='none';
     if(auth)auth.style.display='block';
     if(app)app.style.display='none';
-    setTimeout(()=>document.getElementById('google')?.focus(),30);
+    setTimeout(()=>{if(window.venomEmailSignupReady)window.venomEmailSignupReady=true;document.getElementById('google')?.focus()},30);
   };
 
   window.login=async function(){
@@ -74,16 +74,16 @@
       const client=await getClient();
       const {data:{session},error}=await client.auth.getSession();
       if(error)throw error;
-      const callbackReturn=new URLSearchParams(location.search).get('auth')==='google';
+      const callbackReturn=new URLSearchParams(location.search).get('auth');
       if(session && typeof window.applySession==='function') await window.applySession(session);
-      if(session && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || callbackReturn)){
+      if(session && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || callbackReturn==='google' || callbackReturn==='email')){
         sessionStorage.removeItem(AI_AFTER_AUTH);
         await forceWorkspace();
         history.replaceState({},document.title,location.pathname+location.hash);
       }
       client.auth.onAuthStateChange(async(_event,next)=>{
         if(next && typeof window.applySession==='function') await window.applySession(next);
-        if(next && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || location.search.includes('auth=google'))){
+        if(next && (sessionStorage.getItem(AI_AFTER_AUTH)==='1' || location.search.includes('auth=google') || location.search.includes('auth=email'))){
           sessionStorage.removeItem(AI_AFTER_AUTH);
           setTimeout(()=>forceWorkspace(),120);
         }
@@ -104,6 +104,7 @@
     await ensureScript('/runtime-bridge.js?v='+VERSION,'data-venom-runtime-final');
     await ensureScript('/social-footer.js?v='+VERSION,'data-venom-social-footer');
     await ensureScript('/home-map-enhance.js?v='+VERSION,'data-venom-home-final');
+    await ensureScript('/auth-signup.js?v='+VERSION,'data-venom-auth-signup');
     makeInteractive();
     new MutationObserver(makeInteractive).observe(document.body,{childList:true,subtree:true});
     await finishAuth();
