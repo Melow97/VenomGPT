@@ -13,6 +13,15 @@
     p.querySelector('[data-bank]').addEventListener('click',async()=>{const b=p.querySelector('.venomBank');b.classList.toggle('open');if(b.dataset.loaded)return;try{const r=await fetch('/api/payment-info',{cache:'no-store'});const d=await r.json();['beneficiary','iban','bic','reference'].forEach(k=>p.querySelector('[data-'+k+']').textContent=d[k]||'Not configured');b.dataset.loaded='1'}catch(e){p.querySelector('[data-beneficiary]').textContent='Unable to load payment details'}});
     p.querySelector('[data-copy]').addEventListener('click',async()=>{const text=['Beneficiary: '+p.querySelector('[data-beneficiary]').textContent,'IBAN: '+p.querySelector('[data-iban]').textContent,'BIC: '+p.querySelector('[data-bic]').textContent,'Reference: '+p.querySelector('[data-reference]').textContent].join('\n');try{await navigator.clipboard.writeText(text);p.querySelector('[data-receipt]').textContent='Bank details copied. Use the exact reference shown above.';p.querySelector('[data-receipt]').classList.add('show')}catch(e){}});
   }
-  async function checkout(){const plan=window.userInfo?.plan==='annual'?'annual':'pro';try{const token=window.client?.auth?.getSession?await window.client.auth.getSession():null;const session=token?.data?.session;const r=await fetch('/api/revolut-checkout',{method:'POST',headers:{'content-type':'application/json',...(session?.access_token?{authorization:'Bearer '+session.access_token}:{})},body:JSON.stringify({plan})});const d=await r.json();if(d.checkout_url){location.href=d.checkout_url;return}alert(d.error||'Checkout is temporarily unavailable.')}catch(e){alert('Checkout is temporarily unavailable. Please try again.')}}
+  async function checkout(){
+    const plan=window.userInfo?.plan==='annual'?'annual':'pro';
+    try{
+      let session=null;
+      if(typeof window.venomAuthClient==='function'){const auth=window.venomAuthClient();const r=await auth.auth.getSession();session=r?.data?.session||null}
+      if(!session?.access_token){alert('Please sign in before upgrading.');return}
+      const r=await fetch('/api/revolut-checkout',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+session.access_token},body:JSON.stringify({plan})});
+      const d=await r.json();if(d.checkout_url){location.href=d.checkout_url;return}alert(d.error||'Checkout is temporarily unavailable.')
+    }catch(e){alert('Checkout is temporarily unavailable. Please try again.')}
+  }
   window.venomPaymentExperience=()=>{css();panel()};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',window.venomPaymentExperience);else setTimeout(window.venomPaymentExperience,1200);new MutationObserver(()=>{css();panel()}).observe(document.body,{childList:true,subtree:true});
 })();
