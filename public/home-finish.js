@@ -1,6 +1,6 @@
 /* VENOM GPT HOME FINISH — clean retro NYC map layer */
 (function(){
-  const VERSION='20260815-11';
+  const VERSION='20260815-12';
   function styles(){
     if(document.querySelector('link[data-venom-home-finish-css]'))return;
     const l=document.createElement('link');
@@ -39,11 +39,7 @@
     const map=document.querySelector('.vgMap');
     if(!map||map.dataset.cleaned)return;
     map.dataset.cleaned='1';
-
-    // Remove the old decorative road/grid layers that created distracting
-    // crossing lines over the map. Keep the map readable and restrained.
     map.querySelectorAll('.r1,.r2,.r3,.r4,.vgStreetGrid,.vgBlocks').forEach(e=>e.remove());
-
     const landmarks=[
       ['TIMES SQ','46%','48%'],
       ['EMPIRE STATE','41%','35%'],
@@ -63,6 +59,8 @@
     map.appendChild(layer);
   }
   function boot(){styles();skyline();cleanMap()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-  new MutationObserver(boot).observe(document.documentElement,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  // This layer is static. Do not observe the whole document; other workspace
+  // modules update the DOM frequently and a global observer caused needless work.
+  setTimeout(boot,800);
 })();
