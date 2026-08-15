@@ -103,6 +103,8 @@
 
   function install(){addCustomize();makeCustomize();enhanceConnectors();enhanceVoice();enhanceHistory()}
   const run=()=>setTimeout(install,350);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-  new MutationObserver(()=>{addCustomize();enhanceConnectors();enhanceVoice();enhanceHistory()}).observe(document.body,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  // Workspace changes are driven by explicit module navigation. Use a few
+  // bounded refreshes instead of a document-wide MutationObserver.
+  [900,1800,3200].forEach(ms=>setTimeout(install,ms));
 })();
