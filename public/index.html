@@ -5,23 +5,13 @@
 <meta name="theme-color" content="#080808">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <title>VENOM GPT — Your Local AI. Your Rules.</title>
-<style>
-html,body{margin:0;min-height:100%;background:#080808}body{overflow-x:hidden}#venom-boot-loader{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;background:#080808;color:#f4eadb;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:opacity .28s ease,visibility .28s ease}.done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}.vbl{text-align:center}.vbl-spider{font-size:48px;line-height:1;display:block;filter:drop-shadow(0 5px 14px #e5252055);animation:vblPulse 1.8s ease-in-out infinite}.vbl-name{margin-top:13px;font-weight:900;letter-spacing:-.5px;font-size:20px}.vbl-name b{color:#e52520}.vbl-status{margin-top:7px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#b8aa9b}.vbl-line{width:90px;height:2px;margin:15px auto 0;border-radius:99px;background:linear-gradient(90deg,transparent,#e52520,transparent);animation:vblScan 1.2s ease-in-out infinite}@keyframes vblPulse{50%{transform:translateY(-3px) scale(1.05)}}@keyframes vblScan{50%{opacity:.35;transform:scaleX(.55)}}
-</style>
+<style>html,body{margin:0;min-height:100%;background:#080808}body{overflow-x:hidden}#venom-boot-loader{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;background:#080808;color:#f4eadb;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:opacity .28s ease,visibility .28s ease}.done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}.vbl{text-align:center}.vbl-spider{font-size:48px;line-height:1;display:block;filter:drop-shadow(0 5px 14px #e5252055);animation:vblPulse 1.8s ease-in-out infinite}.vbl-name{margin-top:13px;font-weight:900;letter-spacing:-.5px;font-size:20px}.vbl-name b{color:#e52520}.vbl-status{margin-top:7px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#b8aa9b}.vbl-line{width:90px;height:2px;margin:15px auto 0;border-radius:99px;background:linear-gradient(90deg,transparent,#e52520,transparent);animation:vblScan 1.2s ease-in-out infinite}@keyframes vblPulse{50%{transform:translateY(-3px) scale(1.05)}}@keyframes vblScan{50%{opacity:.35;transform:scaleX(.55)}}</style>
 </head>
 <body>
 <div id="venom-boot-loader" aria-label="Loading Venom GPT"><div class="vbl"><span class="vbl-spider">🕷️</span><div class="vbl-name">VENOM <b>GPT</b></div><div class="vbl-status">Waking the Spider Network</div><div class="vbl-line"></div></div></div>
 <div id="landing"></div><div id="auth" style="display:none"></div><div id="app" style="display:none"></div>
-<!-- Deferred, ordered dependencies: Supabase is available before the Venom runtime starts, eliminating the auth/UI initialization race. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer onload="window.dispatchEvent(new Event('venom:supabase-ready'))" onerror="window.dispatchEvent(new Event('venom:supabase-failed'))"></script>
-<script src="/production-boot.js?v=20260816-98" defer></script>
-<script>
-(()=>{
- const finish=()=>document.getElementById('venom-boot-loader')?.classList.add('done');
- window.addEventListener('load',()=>setTimeout(finish,150),{once:true});
- setTimeout(finish,3000);
- window.addEventListener('error',e=>console.error('[VENOM]',e.error||e.message));window.addEventListener('unhandledrejection',e=>console.error('[VENOM]',e.reason));
-})();
-</script>
+<script src="/production-boot.js?v=20260816-100" defer></script>
+<script>(()=>{const finish=()=>document.getElementById('venom-boot-loader')?.classList.add('done');window.addEventListener('error',e=>console.error('[VENOM]',e.error||e.message));window.addEventListener('unhandledrejection',e=>console.error('[VENOM]',e.reason));window.addEventListener('load',()=>setTimeout(finish,350),{once:true});setTimeout(finish,5000)})();</script>
 </body>
 </html>
