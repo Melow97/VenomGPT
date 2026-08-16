@@ -1,6 +1,6 @@
 /* VENOM GPT — FAST, NON-BLOCKING PRODUCTION BOOT */
 (()=>{
-  const VERSION='20260816-93';
+  const VERSION='20260816-94';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.async=true;
