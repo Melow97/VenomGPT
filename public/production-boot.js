@@ -1,6 +1,6 @@
 /* VENOM GPT — AUTHORITATIVE PRODUCTION BOOT */
 (()=>{
-  const VERSION='20260816-91';
+  const VERSION='20260816-92';
   const load=src=>new Promise(resolve=>{
     const s=document.createElement('script');
     s.src=src+'?v='+VERSION;
@@ -26,9 +26,10 @@
     await load('/venom-spider-seller-polish-v1.js');
     await load('/venom-company-logo-v1.js');
     await load('/venom-home-red-black-override-v1.js');
+    await load('/venom-home-cream-warm-v1.js');
     await load('/venom-auth-guarantee-v2.js');
     await load('/venom-footer-brand-v1.js');
-    console.info('[VENOM] production '+VERSION+' loaded: restored footer/navigation + Venom eye branding + prominent company X');
+    console.info('[VENOM] production '+VERSION+' loaded: warm cream Home + Venom eye branding + restored footer/navigation + AI auth guarantee');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
