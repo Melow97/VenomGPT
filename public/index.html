@@ -20,8 +20,8 @@ html,body{margin:0;min-height:100%;background:#eee2cf}body{overflow-x:hidden}
 <div id="landing"></div>
 <div id="auth" style="display:none"></div>
 <div id="app" style="display:none"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/production-boot.js?v=20260816-93"></script>
-<script>window.addEventListener('error',e=>console.error('[VENOM]',e.error||e.message));window.addEventListener('unhandledrejection',e=>console.error('[VENOM]',e.reason));setTimeout(()=>document.getElementById('venom-boot-loader')?.classList.add('done'),2200);window.addEventListener('load',()=>document.getElementById('venom-boot-loader')?.classList.add('done'));</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="/production-boot.js?v=20260816-94"></script>
+<script>window.addEventListener('error',e=>console.error('[VENOM]',e.error||e.message));window.addEventListener('unhandledrejection',e=>console.error('[VENOM]',e.reason));const hide=()=>document.getElementById('venom-boot-loader')?.classList.add('done');window.addEventListener('load',hide,{once:true});setTimeout(hide,5000);</script>
 </body>
 </html>
