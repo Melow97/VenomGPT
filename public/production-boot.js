@@ -1,7 +1,7 @@
-/* VENOM GPT — STABLE PRODUCTION BOOT v97 */
+/* VENOM GPT — STABLE PRODUCTION BOOT v98 */
 (()=>{
 'use strict';
-const VERSION='20260816-97';
+const VERSION='20260816-98';
 const finish=()=>document.getElementById('venom-boot-loader')?.classList.add('done');
 const load=(src,timeout=3500)=>new Promise(resolve=>{
  let settled=false;const done=()=>{if(settled)return;settled=true;clearTimeout(timer);resolve()};
