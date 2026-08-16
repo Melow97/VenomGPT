@@ -9,6 +9,7 @@ import * as paymentInfo from "./functions/api/payment-info.js";
 import * as revolutCheckout from "./functions/api/revolut-checkout.js";
 import * as revolutWebhook from "./functions/api/revolut-webhook.js";
 import * as welcomeEmail from "./functions/api/welcome-email.js";
+import * as stripeCheckout from "./functions/api/stripe-checkout.js";
 
 const API_MODULES = {
   "/api/chat": chat,
@@ -18,6 +19,7 @@ const API_MODULES = {
   "/api/revolut-checkout": revolutCheckout,
   "/api/revolut-webhook": revolutWebhook,
   "/api/welcome-email": welcomeEmail,
+  "/api/stripe-checkout": stripeCheckout,
 };
 
 function getHandler(mod, method) {
